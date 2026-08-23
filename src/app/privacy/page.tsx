@@ -38,6 +38,14 @@ export default function PrivacyPage() {
           address, or any profile of visitors.
         </p>
         <p>
+          <span className="text-ink">A visitor count.</span> When you open the
+          site your browser generates a random token, stores it locally, and
+          sends it back so we can show how many people are reading right now.
+          It is not derived from your IP address, your device, or anything about
+          you, it is not shared, and clearing your browser storage discards it
+          permanently.
+        </p>
+        <p>
           <span className="text-ink">Standard server logs</span> kept briefly by
           our hosting provider for security and reliability, which may include
           IP addresses.

@@ -68,5 +68,29 @@ export const bids = pgTable(
   }),
 );
 
+/**
+ * Anonymous presence. One row per browser that has ever opened the site,
+ * keyed by a random token the browser generates — no IP, no fingerprint,
+ * nothing that identifies a person.
+ *
+ * "online" is a count of rows touched in the last couple of minutes;
+ * "total" is just the row count.
+ */
+export const visitors = pgTable(
+  "visitors",
+  {
+    id: text("id").primaryKey(),
+    firstSeen: timestamp("first_seen", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastSeen: timestamp("last_seen", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    lastSeenIdx: index("visitors_last_seen_idx").on(t.lastSeen),
+  }),
+);
+
 export type Entry = typeof entries.$inferSelect;
 export type Bid = typeof bids.$inferSelect;

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SITE_NAME } from "@/lib/config";
 import { formatUsd } from "@/lib/format";
 import type { BoardStats } from "@/lib/queries";
+import { LiveCount } from "./LiveCount";
 
 export function Masthead({ stats }: { stats: BoardStats }) {
   return (
@@ -30,9 +31,10 @@ export function Masthead({ stats }: { stats: BoardStats }) {
           </Link>
         </nav>
 
+        <LiveCount />
+
         <div className="toon-sm flex items-center gap-3 bg-paper px-4 py-2 text-sm font-bold">
           <span className="flex items-center gap-2">
-            <span className="blink h-2.5 w-2.5 rounded-full bg-mint" aria-hidden />
             <span className="tnum">{stats.listings}</span>
             <span className="text-mute">listed</span>
           </span>
