@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Baloo_2, Nunito, Space_Mono } from "next/font/google";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 import { CONTACT_EMAIL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/config";
 import "./globals.css";
 
@@ -58,6 +59,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen antialiased">
         {children}
+        <Analytics />
         <footer className="mt-24 border-t-[3px] border-ink bg-zap">
           <div className="mx-auto max-w-6xl px-5 py-8">
             <p className="text-[15px] font-bold">
