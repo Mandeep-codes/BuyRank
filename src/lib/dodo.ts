@@ -55,7 +55,6 @@ export async function createCheckoutSession(input: {
       ...(input.email ? { customer: { email: input.email } } : {}),
       return_url: `${SITE_URL}/success`,
       cancel_url: SITE_URL,
-      billing_currency: "USD",
       // Bids are anonymous — don't make people type a full address for $1.
       minimal_address: true,
       metadata: input.metadata,
@@ -114,6 +113,6 @@ export const PRODUCT_LABEL = `${SITE_NAME} listing`;
 export function paymentsConfigured(): boolean {
   return Boolean(
     process.env.DODO_PAYMENTS_API_KEY?.trim() &&
-      process.env.DODO_PRODUCT_ID?.trim(),
+    process.env.DODO_PRODUCT_ID?.trim(),
   );
 }
