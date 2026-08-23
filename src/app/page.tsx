@@ -9,14 +9,16 @@ import { SetupNotice, databaseErrorCode } from "@/components/SetupNotice";
 import { PAGE_SIZE } from "@/lib/config";
 import { paymentsConfigured } from "@/lib/dodo";
 import {
-  getPriceForFirst,
   getRankedEntries,
   getRecentActivity,
   getStats,
+  priceToBeat,
 } from "@/lib/queries";
 
 // Revalidated by the payment webhook whenever money moves.
 export const revalidate = 30;
+// Fail in 20s rather than burning the platform limit on a stuck query.
+export const maxDuration = 20;
 
 export default async function BoardPage({
   searchParams,
@@ -26,13 +28,14 @@ export default async function BoardPage({
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
 
-  let board, stats, priceForFirst, activity;
+  let board, stats, activity;
 
   try {
-    [board, stats, priceForFirst, activity] = await Promise.all([
+    // Three, not four. getPriceForFirst() used to re-run the entire ranking
+    // query just to read the top bid — which stats already gives us.
+    [board, stats, activity] = await Promise.all([
       getRankedEntries({ page, category: null }),
       getStats(),
-      getPriceForFirst(),
       getRecentActivity(12),
     ]);
   } catch (error) {
@@ -50,6 +53,7 @@ export default async function BoardPage({
     createdAt: a.createdAt.toISOString(),
   }));
 
+  const priceForFirst = stats.topCents > 0 ? priceToBeat(stats.topCents) : 100;
   const leader = page === 1 ? (board.rows[0]?.displayName ?? null) : null;
   const first = (page - 1) * PAGE_SIZE + 1;
   const last = Math.min(page * PAGE_SIZE, board.total);

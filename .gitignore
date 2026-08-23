@@ -9,3 +9,6 @@ drizzle/meta
 .setup-log.txt
 .backup-*
 .env*.backup*
+.backup-*
+.env*.backup*
+*.sh

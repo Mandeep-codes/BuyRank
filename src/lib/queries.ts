@@ -127,27 +127,31 @@ export type BoardStats = {
 };
 
 export async function getStats(): Promise<BoardStats> {
-  const [revenue, listings, top] = await Promise.all([
-    db
-      .select({ total: sum(bids.amountCents), n: count() })
-      .from(bids),
-    db
-      .select({ value: count() })
-      .from(entries)
-      .where(and(eq(entries.status, "active"), gt(entries.bidCents, 0))),
-    db
-      .select({ value: entries.bidCents })
-      .from(entries)
-      .where(and(eq(entries.status, "active")))
-      .orderBy(desc(entries.bidCents))
-      .limit(1),
-  ]);
+  // One round trip. This used to be three parallel queries, which is three
+  // statements in flight at once — and Supabase's transaction pooler does not
+  // like several simultaneous statements on a single pooled connection.
+  const rows = await db.execute<{
+    total_cents: string;
+    bid_count: string;
+    listings: string;
+    top_cents: string;
+  }>(sql`
+    select
+      coalesce((select sum(amount_cents) from bids), 0)          as total_cents,
+      (select count(*) from bids)                                 as bid_count,
+      (select count(*) from entries
+         where status = 'active' and bid_cents > 0)               as listings,
+      coalesce((select max(bid_cents) from entries
+         where status = 'active'), 0)                             as top_cents
+  `);
+
+  const row = (rows as unknown as Array<Record<string, unknown>>)[0] ?? {};
 
   return {
-    totalCents: Number(revenue[0]?.total ?? 0),
-    bidCount: Number(revenue[0]?.n ?? 0),
-    listings: Number(listings[0]?.value ?? 0),
-    topCents: Number(top[0]?.value ?? 0),
+    totalCents: Number(row.total_cents ?? 0),
+    bidCount: Number(row.bid_count ?? 0),
+    listings: Number(row.listings ?? 0),
+    topCents: Number(row.top_cents ?? 0),
   };
 }
 
