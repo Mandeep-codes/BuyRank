@@ -1,0 +1,11 @@
+node_modules
+.next
+.env
+.env.local
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+drizzle/meta
+.setup-log.txt
+.backup-*
+.env*.backup*

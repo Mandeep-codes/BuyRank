@@ -1,0 +1,243 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cream: #fff6e5;
+  --paper: #ffffff;
+  --ink: #1c1512;
+  --mute: #7c6f63;
+  --pop: #ff5a36;
+  --zap: #ffc53d;
+  --sky: #59b4e8;
+  --mint: #37b87c;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    background: var(--cream);
+  }
+
+  body {
+    background: var(--cream);
+    /* Halftone dots — this is a printed comic page, not a dashboard. */
+    background-image: radial-gradient(
+      rgba(28, 21, 18, 0.07) 1.5px,
+      transparent 1.5px
+    );
+    background-size: 18px 18px;
+    color: var(--ink);
+    font-family: var(--font-body), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .tnum {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  ::selection {
+    background: var(--zap);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--sky);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* Everything on this page is a sticker sitting on the page. */
+  .toon {
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    box-shadow: 5px 5px 0 var(--ink);
+    background: var(--paper);
+  }
+
+  .toon-sm {
+    border: 2.5px solid var(--ink);
+    border-radius: 12px;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  /* Buttons physically press into the page. */
+  .press {
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    box-shadow: 5px 5px 0 var(--ink);
+    transition:
+      transform 90ms ease,
+      box-shadow 90ms ease;
+  }
+
+  .press:hover:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .press:active:not(:disabled) {
+    transform: translate(5px, 5px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  .press:disabled {
+    box-shadow: 5px 5px 0 rgba(28, 21, 18, 0.25);
+    border-color: rgba(28, 21, 18, 0.35);
+  }
+
+  /* The price plate on each row. A tag, because that is what a price is. */
+  .tag {
+    display: inline-block;
+    border: 2.5px solid var(--ink);
+    border-radius: 999px;
+    background: var(--zap);
+    padding: 0.15rem 0.7rem;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+
+  /* Rank medallion. Ranks are prizes here, so they get a coin. */
+  .coin {
+    display: grid;
+    place-items: center;
+    border: 3px solid var(--ink);
+    border-radius: 999px;
+    background: var(--paper);
+    box-shadow: 3px 3px 0 var(--ink);
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .coin-gold {
+    background: var(--zap);
+  }
+
+  /* Speech bubble for the live rails — the board talking about itself. */
+  .bubble {
+    position: relative;
+    border: 2.5px solid var(--ink);
+    border-radius: 14px;
+    background: var(--paper);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .bubble::after,
+  .bubble::before {
+    content: "";
+    position: absolute;
+    left: 26px;
+    bottom: -11px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 11px solid var(--ink);
+  }
+
+  .bubble::after {
+    bottom: -7px;
+    border-top-color: var(--paper);
+  }
+
+  /* Depth bar: share of the leader's bid, log-scaled. Real data, drawn loud. */
+  .depth {
+    position: absolute;
+    inset: 3px auto 3px 3px;
+    border-radius: 10px;
+    background: repeating-linear-gradient(
+      -45deg,
+      rgba(255, 197, 61, 0.55) 0 10px,
+      rgba(255, 197, 61, 0.25) 10px 20px
+    );
+    pointer-events: none;
+    transform-origin: left center;
+    animation: depth-in 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @keyframes depth-in {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .tilt-l {
+    transform: rotate(-1.5deg);
+  }
+
+  .tilt-r {
+    transform: rotate(1.5deg);
+  }
+
+  .tape {
+    display: flex;
+    width: max-content;
+    animation: tape 60s linear infinite;
+  }
+
+  @keyframes tape {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .tape:hover {
+    animation-play-state: paused;
+  }
+
+  .blink {
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  .wobble:hover {
+    animation: wobble 500ms ease-in-out;
+  }
+
+  @keyframes wobble {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    25% {
+      transform: rotate(-4deg);
+    }
+    75% {
+      transform: rotate(4deg);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .tape,
+  .blink {
+    animation: none;
+  }
+}
