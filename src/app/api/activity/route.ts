@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cachedActivity } from "@/lib/cache";
+import { cachedActivity, cachedClicks } from "@/lib/cache";
 
 export const runtime = "nodejs";
 
@@ -12,10 +12,10 @@ export const revalidate = 20;
 
 export async function GET() {
   try {
-    const items = await cachedActivity();
-    return NextResponse.json({ items });
+    const [items, clicks] = await Promise.all([cachedActivity(), cachedClicks()]);
+    return NextResponse.json({ items, clicks });
   } catch (error) {
     console.error("[activity]", error);
-    return NextResponse.json({ items: [] });
+    return NextResponse.json({ items: [], clicks: [] });
   }
 }

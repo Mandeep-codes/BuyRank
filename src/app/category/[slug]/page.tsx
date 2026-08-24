@@ -4,7 +4,7 @@ import { CategoryPills } from "@/components/CategoryPills";
 import { EntryRow } from "@/components/EntryRow";
 import { Pagination } from "@/components/Pagination";
 import { CATEGORIES, categoryLabel, SITE_NAME } from "@/lib/config";
-import { cachedBoard, cachedStats } from "@/lib/cache";
+import { cachedBoard, cachedCategories, cachedStats } from "@/lib/cache";
 
 // Dynamic because of searchParams; the caching is in @/lib/cache.
 export const maxDuration = 60;
@@ -39,9 +39,10 @@ export default async function CategoryPage({
   if (!CATEGORIES.some((c) => c.slug === slug)) notFound();
 
   const page = Math.max(1, Number(pageParam) || 1);
-  const [board, stats] = await Promise.all([
+  const [board, stats, available] = await Promise.all([
     cachedBoard(page, slug),
     cachedStats(),
+    cachedCategories(),
   ]);
 
   return (
@@ -58,7 +59,7 @@ export default async function CategoryPage({
       </p>
 
       <div className="mt-8">
-        <CategoryPills active={slug} />
+        <CategoryPills active={slug} available={available} />
       </div>
 
       {board.rows.length === 0 ? (

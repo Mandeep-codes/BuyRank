@@ -24,9 +24,12 @@ type Preview = {
 export function ClaimPanel({
   priceForFirst,
   enabled,
+  leader,
 }: {
   priceForFirst: number;
   enabled: boolean;
+  /** Who holds #1 right now — the fight the headline is selling. */
+  leader?: { name: string; cents: number } | null;
 }) {
   const [submission, setSubmission] = useState("");
   const [category, setCategory] = useState("other");
@@ -142,13 +145,25 @@ export function ClaimPanel({
         </div>
       </div>
 
-      <p className="mx-auto mt-6 max-w-xl text-[16px] leading-relaxed text-mute">
+      {leader ? (
+        <p className="mx-auto mt-3 max-w-xl text-[15px] leading-snug">
+          <span className="font-bold text-ink">{leader.name}</span>{" "}
+          <span className="text-mute">holds #1 at</span>{" "}
+          <span className="tnum font-bold text-ink">{formatUsd(leader.cents)}</span>
+          <span className="text-mute"> &mdash; take it for </span>
+          <span className="tnum font-bold text-pop">
+            {formatUsd(priceForFirst)}
+          </span>
+          <span className="text-mute">.</span>
+        </p>
+      ) : null}
+
+      <p className="mx-auto mt-2 max-w-xl text-[15px] leading-relaxed text-mute">
         <span className="font-semibold text-pop">New listings start at $1.</span>{" "}
-        Bidding less than the top price still puts you on the board, at whatever
-        place that amount can take.
+        Any bid puts you on the board at whatever rank it buys.
       </p>
 
-      <form onSubmit={handleSubmit} className="mx-auto mt-8 max-w-3xl text-left">
+      <form onSubmit={handleSubmit} className="mx-auto mt-5 max-w-3xl text-left">
         <div className="grid min-w-0 gap-2.5 md:grid-cols-[minmax(0,1fr)_minmax(0,12rem)_auto]">
           <label className="block">
             <span className="sr-only">Product URL or @handle</span>
@@ -201,7 +216,7 @@ export function ClaimPanel({
           />
         </label>
 
-        <p className="mt-4 min-h-[2.25rem] text-center text-[14px] leading-snug text-mute">
+        <p className="mt-3 min-h-[2.25rem] text-center text-[14px] leading-snug text-mute">
           {!enabled ? (
             "Bidding opens as soon as payment setup is finished."
           ) : error ? (

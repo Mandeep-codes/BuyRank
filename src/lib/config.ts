@@ -16,6 +16,20 @@ export const MIN_BID_CENTS = 100;
 export const MAX_BID_CENTS = 5_000_000;
 /** Rows shown per page. */
 export const PAGE_SIZE = 50;
+
+/** The rented "Sponsored" card, priced per day. */
+export const SPONSOR_PRICE_CENTS_PER_DAY = 500;
+/** Longest single rental. Keeps the queue short and the spot contestable. */
+export const SPONSOR_MAX_DAYS = 7;
+
+/**
+ * Display thresholds: a stat that argues against the site is worse than no
+ * stat. These hide real-but-weak numbers until they read as strength — the
+ * numbers themselves are never altered.
+ */
+export const MIN_ONLINE_TO_SHOW = 5;
+export const MIN_PAID_STAT_CENTS = 10_000;
+export const MIN_CLICKS_STAT = 10;
 /** Appended to every outbound link so bidders can attribute their traffic. */
 export const UTM_SOURCE = SITE_NAME.toLowerCase().replace(/\s+/g, "");
 
@@ -40,6 +54,7 @@ export const CATEGORIES = [
   { slug: "security-privacy", label: "Security, Privacy & Compliance" },
   { slug: "media-generation", label: "AI Media Generation" },
   { slug: "audio-podcasting", label: "Audio, Voice & Podcasting" },
+  { slug: "cloud-hosting", label: "Cloud & Hosting" },
   { slug: "domains-assets", label: "Domains & Web Assets" },
   { slug: "people-profiles", label: "People & Profiles" },
   { slug: "other", label: "Other" },

@@ -28,3 +28,15 @@ export function timeAgo(date: Date | string): string {
   if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
   return `${Math.floor(months / 12)}y ago`;
 }
+
+/**
+ * "2h", "3d 4h" — null under `minHours`, so callers can hide trivially short
+ * durations instead of printing "on top 0h".
+ */
+export function formatDuration(ms: number, minHours = 0): string | null {
+  const hours = Math.floor(ms / 3_600_000);
+  if (hours < minHours) return null;
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ${hours % 24}h`;
+}

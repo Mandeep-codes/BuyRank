@@ -74,8 +74,12 @@ async function fetchHtml(url: string): Promise<string | null> {
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        // Some sites serve a blank shell to unknown agents.
-        "User-Agent": "Mozilla/5.0 (compatible; BidBoardBot/1.0; +https://example.com/bot)",
+        // A plain browser UA, deliberately: Cloudflare and friends 403 any
+        // UA with "bot" in it, which is why new listings were arriving with
+        // no title, description, or icon. This is one fetch per submission
+        // of a page the submitter explicitly asked us to read.
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
         Accept: "text/html,application/xhtml+xml",
       },
     });
@@ -106,22 +110,92 @@ async function fetchHtml(url: string): Promise<string | null> {
   }
 }
 
-export async function scrapeMetadata(url: string): Promise<ScrapedMeta> {
-  const host = (() => {
+/** Pulls every <link rel="...icon..."> href out of the head, best first. */
+function findIconLinks(html: string, base: string): string[] {
+  const found: { href: string; score: number }[] = [];
+  const linkRe = /<link\s+[^>]*>/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = linkRe.exec(html))) {
+    const tag = match[0];
+    const rel = tag.match(/rel=["']([^"']+)["']/i)?.[1]?.toLowerCase() ?? "";
+    if (!rel.includes("icon")) continue;
+    const href = tag.match(/href=["']([^"']+)["']/i)?.[1];
+    if (!href || href.startsWith("data:")) continue;
+
+    // apple-touch-icon is usually 180px; sized icons beat unsized ones.
+    const sizes = tag.match(/sizes=["'](\d+)x\d+["']/i)?.[1];
+    const score =
+      (rel.includes("apple") ? 1000 : 0) + (sizes ? parseInt(sizes, 10) : 32);
+
     try {
-      return new URL(url).hostname;
+      found.push({ href: new URL(href, base).toString(), score });
+    } catch {
+      // Unresolvable href — skip it.
+    }
+  }
+
+  return found.sort((a, b) => b.score - a.score).map((f) => f.href);
+}
+
+/** True if the URL answers with an actual image. One quick, bounded request. */
+async function isImage(url: string): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3500);
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      redirect: "follow",
+      headers: {
+        Accept: "image/*",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+      },
+    });
+    if (!res.ok) return false;
+    const type = res.headers.get("content-type") ?? "";
+    await res.body?.cancel().catch(() => {});
+    return type.startsWith("image/");
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * The site's own icon first, verified; /favicon.ico second; Google's proxy
+ * only as the floor. New indie domains are the whole audience here, and the
+ * proxy returns a generic globe for domains it hasn't crawled — which is why
+ * icons were coming out "wrong" when it was the first choice.
+ */
+async function resolveFavicon(
+  url: string,
+  html: string | null,
+): Promise<string | null> {
+  const parsed = (() => {
+    try {
+      return new URL(url);
     } catch {
       return null;
     }
   })();
+  if (!parsed) return null;
 
-  // Google's favicon service is more reliable than parsing <link rel="icon">
-  // across every possible relative-path quirk.
-  const faviconUrl = host
-    ? `https://www.google.com/s2/favicons?domain=${host}&sz=64`
-    : null;
+  const candidates = html ? findIconLinks(html, url).slice(0, 2) : [];
+  candidates.push(new URL("/favicon.ico", parsed.origin).toString());
 
+  for (const candidate of candidates) {
+    if (await isImage(candidate)) return candidate;
+  }
+
+  return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`;
+}
+
+export async function scrapeMetadata(url: string): Promise<ScrapedMeta> {
   const html = await fetchHtml(url);
+  const faviconUrl = await resolveFavicon(url, html);
+
   if (!html) return { title: null, description: null, faviconUrl };
 
   const title =

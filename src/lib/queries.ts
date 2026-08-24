@@ -1,6 +1,6 @@
 import { and, count, desc, eq, gt, sql, sum } from "drizzle-orm";
 import { db } from "./db";
-import { bids, entries, type Entry } from "./db/schema";
+import { bids, clickEvents, entries, sponsorSlots, visitors, type Entry } from "./db/schema";
 import { PAGE_SIZE } from "./config";
 
 export type RankedEntry = Entry & { rank: number };
@@ -63,6 +63,30 @@ export async function getRankedEntries(opts: {
   };
 }
 
+/** One listing with its live global rank, or null if it isn't on the board. */
+export async function getEntryWithRank(id: string): Promise<RankedEntry | null> {
+  const rows = await db
+    .select()
+    .from(rankedBase)
+    .where(sql`${rankedBase.id} = ${id}`)
+    .limit(1);
+  const row = rows[0] as RankedEntry | undefined;
+  return row ? { ...row, rank: Number(row.rank) } : null;
+}
+
+/** Same, looked up by display name — the success page only knows the name. */
+export async function findEntryRankByName(
+  name: string,
+): Promise<RankedEntry | null> {
+  const rows = await db
+    .select()
+    .from(rankedBase)
+    .where(sql`${rankedBase.displayName} = ${name}`)
+    .limit(1);
+  const row = rows[0] as RankedEntry | undefined;
+  return row ? { ...row, rank: Number(row.rank) } : null;
+}
+
 /** The current #1, used for the hero and the OG image. */
 export async function getTopEntry(): Promise<RankedEntry | null> {
   const { rows } = await getRankedEntries({ page: 1, category: null });
@@ -95,6 +119,8 @@ export async function getEntryByUrl(url: string): Promise<Entry | null> {
 export type ActivityItem = {
   id: string;
   displayName: string;
+  faviconUrl: string | null;
+  url: string;
   amountCents: number;
   createdAt: Date;
   entryId: string;
@@ -106,6 +132,8 @@ export async function getRecentActivity(limit = 12): Promise<ActivityItem[]> {
     .select({
       id: bids.id,
       displayName: entries.displayName,
+      faviconUrl: entries.faviconUrl,
+      url: entries.url,
       amountCents: bids.amountCents,
       createdAt: bids.createdAt,
       entryId: entries.id,
@@ -124,6 +152,11 @@ export type BoardStats = {
   listings: number;
   bidCount: number;
   topCents: number;
+  /** Lifetime outbound clicks across active listings — the value stat. */
+  totalClicks: number;
+  /** Presence, server-side, so the pill renders complete on first paint. */
+  onlineNow: number;
+  totalVisitors: number;
 };
 
 export async function getStats(): Promise<BoardStats> {
@@ -142,7 +175,12 @@ export async function getStats(): Promise<BoardStats> {
       (select count(*) from entries
          where status = 'active' and bid_cents > 0)               as listings,
       coalesce((select max(bid_cents) from entries
-         where status = 'active'), 0)                             as top_cents
+         where status = 'active'), 0)                             as top_cents,
+      coalesce((select sum(clicks) from entries
+         where status = 'active'), 0)                             as total_clicks,
+      (select count(*) from visitors
+         where last_seen > now() - interval '150 seconds')        as online_now,
+      (select count(*) from visitors)                             as total_visitors
   `);
 
   const row = (rows as unknown as Array<Record<string, unknown>>)[0] ?? {};
@@ -152,7 +190,20 @@ export async function getStats(): Promise<BoardStats> {
     bidCount: Number(row.bid_count ?? 0),
     listings: Number(row.listings ?? 0),
     topCents: Number(row.top_cents ?? 0),
+    totalClicks: Number(row.total_clicks ?? 0),
+    onlineNow: Number(row.online_now ?? 0),
+    totalVisitors: Number(row.total_visitors ?? 0),
   };
+}
+
+/** Slugs that actually have listings, so empty pills never render. */
+export async function getActiveCategories(): Promise<string[]> {
+  const rows = await db
+    .select({ category: entries.category })
+    .from(entries)
+    .where(and(eq(entries.status, "active"), gt(entries.bidCents, 0)))
+    .groupBy(entries.category);
+  return rows.map((r) => r.category);
 }
 
 /**
@@ -223,7 +274,206 @@ export async function recordClick(id: string): Promise<string | null> {
     .set({ clicks: sql`${entries.clicks} + 1` })
     .where(and(eq(entries.id, id), eq(entries.status, "active")))
     .returning({ url: entries.url });
-  return rows[0]?.url ?? null;
+
+  const url = rows[0]?.url ?? null;
+
+  if (url) {
+    // The event log powers the traffic feed and the sponsor's window count.
+    // If this insert fails the visitor still gets their redirect — losing one
+    // feed item is better than eating the click.
+    try {
+      await db.insert(clickEvents).values({ entryId: id });
+    } catch (error) {
+      console.error("[click-event]", error);
+    }
+  }
+
+  return url;
+}
+
+export type TrafficItem = {
+  id: string;
+  displayName: string;
+  faviconUrl: string | null;
+  createdAt: Date;
+};
+
+/** Newest outbound clicks, for the live traffic rail. */
+export async function getRecentClicks(limit = 10): Promise<TrafficItem[]> {
+  return db
+    .select({
+      id: clickEvents.id,
+      displayName: entries.displayName,
+      faviconUrl: entries.faviconUrl,
+      createdAt: clickEvents.createdAt,
+    })
+    .from(clickEvents)
+    .innerJoin(entries, eq(clickEvents.entryId, entries.id))
+    .where(
+      and(
+        eq(entries.status, "active"),
+        // The ticker only shows fresh movement — a stale "5 hours ago" item
+        // reads worse than showing nothing.
+        gt(clickEvents.createdAt, sql`now() - interval '24 hours'`),
+      ),
+    )
+    .orderBy(desc(clickEvents.createdAt))
+    .limit(limit);
+}
+
+export type SponsorState = {
+  current: {
+    entryId: string;
+    displayName: string;
+    title: string | null;
+    description: string | null;
+    faviconUrl: string | null;
+    url: string;
+    /** Clicks measured inside this rental, not lifetime. */
+    windowClicks: number;
+    startsAt: string;
+    endsAt: string;
+  } | null;
+  /** When the spot next opens up — now, if nothing is queued. */
+  nextOpenAt: string;
+};
+
+export async function getSponsorState(): Promise<SponsorState> {
+  const now = new Date();
+
+  const [slot] = await db
+    .select({
+      entryId: sponsorSlots.entryId,
+      displayName: entries.displayName,
+      title: entries.title,
+      description: entries.description,
+      faviconUrl: entries.faviconUrl,
+      url: entries.url,
+      startsAt: sponsorSlots.startsAt,
+      endsAt: sponsorSlots.endsAt,
+    })
+    .from(sponsorSlots)
+    .innerJoin(entries, eq(sponsorSlots.entryId, entries.id))
+    .where(
+      and(
+        eq(sponsorSlots.status, "active"),
+        sql`${sponsorSlots.startsAt} <= now()`,
+        sql`${sponsorSlots.endsAt} > now()`,
+      ),
+    )
+    .orderBy(sponsorSlots.startsAt)
+    .limit(1);
+
+  const [queueTail] = await db
+    .select({ endsAt: sql<string>`max(${sponsorSlots.endsAt})` })
+    .from(sponsorSlots)
+    .where(and(eq(sponsorSlots.status, "active"), gt(sponsorSlots.endsAt, now)));
+
+  const nextOpenAt = queueTail?.endsAt ? new Date(queueTail.endsAt) : now;
+
+  if (!slot) {
+    return { current: null, nextOpenAt: nextOpenAt.toISOString() };
+  }
+
+  const [clicksRow] = await db
+    .select({ n: count() })
+    .from(clickEvents)
+    .where(
+      and(
+        eq(clickEvents.entryId, slot.entryId),
+        gt(clickEvents.createdAt, slot.startsAt),
+      ),
+    );
+
+  return {
+    current: {
+      entryId: slot.entryId,
+      displayName: slot.displayName,
+      title: slot.title,
+      description: slot.description,
+      faviconUrl: slot.faviconUrl,
+      url: slot.url,
+      windowClicks: Number(clicksRow?.n ?? 0),
+      startsAt: slot.startsAt.toISOString(),
+      endsAt: slot.endsAt.toISOString(),
+    },
+    nextOpenAt: nextOpenAt.toISOString(),
+  };
+}
+
+/**
+ * Settles a paid sponsor rental. Same idempotency contract as settleBid.
+ * The rental starts when the current queue ends, so buying while someone
+ * else's slot runs queues you behind them rather than overwriting them.
+ */
+export async function settleSponsor(input: {
+  url: string;
+  displayName: string;
+  title: string | null;
+  description: string | null;
+  faviconUrl: string | null;
+  days: number;
+  amountCents: number;
+  paymentId: string;
+}): Promise<{ applied: boolean }> {
+  return db.transaction(async (tx) => {
+    // The sponsored product doesn't have to be on the ranked board — a zero
+    // bid keeps it out of the ranking (the board filters bid_cents > 0) while
+    // still giving the slot a real entry row to point at.
+    const [entry] = await tx
+      .insert(entries)
+      .values({
+        url: input.url,
+        displayName: input.displayName,
+        title: input.title,
+        description: input.description,
+        faviconUrl: input.faviconUrl,
+      })
+      .onConflictDoUpdate({
+        target: entries.url,
+        set: {
+          title: sql`coalesce(${input.title}, ${entries.title})`,
+          description: sql`coalesce(${input.description}, ${entries.description})`,
+          faviconUrl: sql`coalesce(${input.faviconUrl}, ${entries.faviconUrl})`,
+          updatedAt: new Date(),
+        },
+      })
+      .returning({ id: entries.id });
+
+    const [tail] = await tx
+      .select({ endsAt: sql<string>`max(${sponsorSlots.endsAt})` })
+      .from(sponsorSlots)
+      .where(
+        and(eq(sponsorSlots.status, "active"), gt(sponsorSlots.endsAt, new Date())),
+      );
+
+    const startsAt = tail?.endsAt ? new Date(tail.endsAt) : new Date();
+    const endsAt = new Date(startsAt.getTime() + input.days * 86_400_000);
+
+    const inserted = await tx
+      .insert(sponsorSlots)
+      .values({
+        entryId: entry.id,
+        paymentId: input.paymentId,
+        amountCents: input.amountCents,
+        startsAt,
+        endsAt,
+      })
+      .onConflictDoNothing({ target: sponsorSlots.paymentId })
+      .returning({ id: sponsorSlots.id });
+
+    return { applied: inserted.length > 0 };
+  });
+}
+
+/** Takes a refunded rental off the rotation. Keeps the row as a record. */
+export async function reverseSponsor(paymentId: string): Promise<boolean> {
+  const rows = await db
+    .update(sponsorSlots)
+    .set({ status: "reversed" })
+    .where(eq(sponsorSlots.paymentId, paymentId))
+    .returning({ id: sponsorSlots.id });
+  return rows.length > 0;
 }
 
 /**

@@ -19,7 +19,11 @@ const ONLINE_WINDOW = "150 seconds";
  * none at all.
  */
 export async function POST(req: Request) {
-  const limit = rateLimit(`presence:${clientIp(req)}`, 6, 60_000);
+  // 60/min, not 6: whole apartment blocks and mobile carriers (CGNAT) share
+  // one IP, and at 6/min the seventh person behind it stopped being counted —
+  // the online number was *under*-reporting. The limit only needs to stop a
+  // single script spraying fresh tokens, and 60/min still does that.
+  const limit = rateLimit(`presence:${clientIp(req)}`, 60, 60_000);
 
   let id: string | null = null;
   if (limit.ok) {

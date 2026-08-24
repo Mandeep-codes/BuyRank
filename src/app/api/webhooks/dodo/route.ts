@@ -4,10 +4,12 @@ import { NextResponse } from "next/server";
 import { Webhook } from "standardwebhooks";
 import { CATEGORY_SLUGS, MIN_BID_CENTS } from "@/lib/config";
 import type { DodoWebhookPayload } from "@/lib/dodo";
-import { reverseBid, settleBid } from "@/lib/queries";
+import { reverseBid, reverseSponsor, settleBid, settleSponsor } from "@/lib/queries";
+import { scrapeMetadata } from "@/lib/metadata";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 /**
  * The only place a bid is ever written. Dodo retries until it gets a 2xx, so
@@ -62,7 +64,7 @@ export async function POST(req: Request) {
     const id = event.data?.payment_id;
     if (id) {
       try {
-        const reversed = await reverseBid(id);
+        const reversed = (await reverseBid(id)) || (await reverseSponsor(id));
         if (reversed) {
           revalidateTag(BOARD_TAG);
           revalidatePath("/", "layout");
@@ -90,6 +92,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true });
   }
 
+  // A sponsor rental settles into the slot queue, not onto the board.
+  if (meta.kind === "sponsor") {
+    const days = Number(meta.sponsor_days);
+    const sponsorCents = Number(meta.sponsor_cents);
+    if (!Number.isFinite(days) || days < 1 || !Number.isFinite(sponsorCents)) {
+      console.warn("[webhook] implausible sponsor metadata", paymentId);
+      return NextResponse.json({ received: true });
+    }
+    try {
+      const result = await settleSponsor({
+        url: meta.url,
+        displayName: meta.display_name || meta.url,
+        title: meta.title || null,
+        description: meta.description || null,
+        faviconUrl: meta.favicon_url || null,
+        days,
+        amountCents: sponsorCents,
+        paymentId,
+      });
+      if (result.applied) {
+        revalidateTag(BOARD_TAG);
+        revalidatePath("/", "layout");
+      }
+      return NextResponse.json({ received: true, applied: result.applied });
+    } catch (error) {
+      console.error("[webhook] sponsor settle failed", error);
+      return NextResponse.json({ error: "Settle failed" }, { status: 500 });
+    }
+  }
+
   // Trust our own metadata for the amount, not the charged total — the charged
   // total includes tax, and rank should reflect the bid, not the buyer's VAT.
   const amountCents = Number(meta.bid_cents);
@@ -102,13 +134,30 @@ export async function POST(req: Request) {
     ? meta.category
     : "other";
 
+  // If the checkout-time scrape came back empty (target was slow, or briefly
+  // behind a challenge page), try once more now — the listing is being paid
+  // for and deserves its title, description, and icon.
+  let title = meta.title || null;
+  let description = meta.description || null;
+  let faviconUrl = meta.favicon_url || null;
+  if (!title || !description || !faviconUrl) {
+    try {
+      const fresh = await scrapeMetadata(meta.url);
+      title = title || fresh.title;
+      description = description || fresh.description;
+      faviconUrl = faviconUrl || fresh.faviconUrl;
+    } catch (error) {
+      console.warn("[webhook] rescrape failed", error);
+    }
+  }
+
   try {
     const result = await settleBid({
       url: meta.url,
       displayName: meta.display_name || meta.url,
-      title: meta.title || null,
-      description: meta.description || null,
-      faviconUrl: meta.favicon_url || null,
+      title,
+      description,
+      faviconUrl,
       category: category!,
       amountCents,
       paymentId,

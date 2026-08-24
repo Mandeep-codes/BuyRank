@@ -92,5 +92,60 @@ export const visitors = pgTable(
   }),
 );
 
+/**
+ * One row per outbound click, so the traffic feed can show individual events
+ * and the sponsor card can count clicks inside its own rental window. The
+ * per-entry `clicks` counter stays as the cheap running total; this table is
+ * the receipts.
+ */
+export const clickEvents = pgTable(
+  "click_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    entryId: uuid("entry_id")
+      .notNull()
+      .references(() => entries.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    createdIdx: index("click_events_created_idx").on(t.createdAt),
+    entryCreatedIdx: index("click_events_entry_created_idx").on(
+      t.entryId,
+      t.createdAt,
+    ),
+  }),
+);
+
+/**
+ * The rented "Sponsored" placement. One slot, sold by the day; consecutive
+ * purchases queue back-to-back. `paymentId` is unique for the same reason it
+ * is on `bids`: webhook retries must not create a second rental.
+ */
+export const sponsorSlots = pgTable(
+  "sponsor_slots",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    entryId: uuid("entry_id")
+      .notNull()
+      .references(() => entries.id, { onDelete: "cascade" }),
+    paymentId: text("payment_id").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    /** active | reversed — reversed slots keep their row but never render. */
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    paymentIdx: uniqueIndex("sponsor_slots_payment_idx").on(t.paymentId),
+    endsIdx: index("sponsor_slots_ends_idx").on(t.endsAt),
+  }),
+);
+
 export type Entry = typeof entries.$inferSelect;
 export type Bid = typeof bids.$inferSelect;
+export type SponsorSlot = typeof sponsorSlots.$inferSelect;

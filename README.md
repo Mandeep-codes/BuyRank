@@ -267,3 +267,77 @@ list before you launch.
 | `npm run db:push` | Sync schema to the database |
 | `npm run db:studio` | Browse the data |
 | `node scripts/seed.mjs` | Fill the board with fake listings |
+
+
+## Board lift (Aug 2026)
+
+- Hero names the current #1 ("outcode.lol holds #1 at $2 — take it for $3")
+  and vertical space is tightened so the top of the board reaches the first
+  screen.
+- Stat pill is curated, never fabricated: "online" appears at 5+, "paid so
+  far" at $100+, and a "clicks delivered" stat appears at 10+ clicks.
+  Thresholds live in `src/lib/config.ts`.
+- New `click_events` table logs every /r/[id] redirect; a one-line ticker
+  under the pill rotates real clicks from the last 24h and renders nothing
+  when there are none.
+- Right rail: rentable Sponsored card ($5/day, 1–7 days, queues back-to-back,
+  same Dodo product + webhook, idempotent on payment_id, reversed on refund).
+  Shows clicks measured inside the rental window and a live countdown. When
+  unrented, the slot is the rent form.
+- Category pills only render categories that have listings.
+
+- Favicons fixed at three layers: the scraper now uses the page's real
+  `<link rel="icon">` (verified) before falling back to `/favicon.ico` and
+  only then Google's proxy; a `<Favicon>` component self-heals broken icon
+  URLs at render time; and `scripts/refresh-favicons.mjs` re-resolves icons
+  for existing listings (the deploy script runs it once). The site itself
+  now ships a real multi-size `/favicon.ico`.
+- Presence counting corrected: the per-IP heartbeat limit was 6/min, which
+  silently stopped counting people behind shared IPs (carrier NAT, offices)
+  — now 60/min. Heartbeats every 60s, and private-browsing tabs use a
+  per-tab token instead of minting a new one per page load, so "visitors
+  since launch" no longer inflates.
+
+Deliberately absent: any seeded or offset counter. The numbers are the
+product being sold, so they have to be measured.
+
+
+## Growth kit (Aug 2026)
+
+- Mobile board rows now show favicons (they were hidden below the sm
+  breakpoint by design; now 32px on phones, 44px on desktop).
+- Leader line fixed: postgres returns window-function ranks as strings, so
+  the #1 check now coerces before comparing. Stats cache key bumped to -v2
+  so the clicks-delivered stat can't be masked by a stale pre-deploy cache.
+- Every listing has a share page at /l/[id] with a live OG card ("#2 on
+  BuyRank"), visit + takeover CTAs, share buttons, and an embeddable SVG
+  badge at /api/badge/[id] whose rank updates as the board moves.
+- Board rows link to their share page, and the #1 row shows how long the
+  leader has held the top ("on top 3h"), measured from their winning bid.
+- The success page now knows who just paid (checkout passes the display
+  name through the return URL), polls /api/rank while the webhook settles,
+  then shows the rank they took with share buttons — the moment a buyer is
+  most willing to post it.
+
+
+## UI lift (Aug 2026)
+
+Consistency pass, no new concepts: one card style (18px radius, hairline
+border) shared by board rows, recent bids, and the sponsor slot; recent
+bids get favicon tiles; board rows get a larger icon tile and a thinner
+meta line (time - clicks - take-for, share as an icon); #1 carries a soft
+tint plus the reign chip as the only emphasis; hero rhythm tightened.
+
+
+## Fix pack (Aug 2026)
+
+- New-listing metadata fixed: the scraper's UA said "Bot", so Cloudflare-
+  fronted product sites returned 403 and listings arrived with no title,
+  description, or icon. It now identifies as a normal browser (one fetch
+  per submission of a page the submitter asked us to read), the webhook
+  re-scrapes once at settlement if anything is still missing, and
+  scripts/refresh-meta.mjs heals existing rows (deploy runs it once).
+- Stat pill fixed on refresh: online and visitor counts are now computed
+  server-side inside getStats and rendered on first paint, with the
+  heartbeat updating them live after — no more vanishing segments or the
+  orphan dot while the first heartbeat is in flight.

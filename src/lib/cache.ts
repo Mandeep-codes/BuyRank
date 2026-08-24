@@ -1,7 +1,10 @@
 import { unstable_cache } from "next/cache";
 import {
+  getActiveCategories,
   getRankedEntries,
   getRecentActivity,
+  getRecentClicks,
+  getSponsorState,
   getStats,
   type BoardStats,
   type RankedEntry,
@@ -38,7 +41,9 @@ export const cachedBoard = unstable_cache(
   category: string | null,
 ) => Promise<{ rows: RankedEntry[]; total: number; pages: number }>;
 
-export const cachedStats = unstable_cache(async () => getStats(), ["board-stats"], {
+// Key bumped to -v2: Vercel's data cache survives deployments, so the old
+// key could briefly serve a stats payload without totalClicks after deploy.
+export const cachedStats = unstable_cache(async () => getStats(), ["board-stats-v3"], {
   revalidate: WINDOW_SECONDS,
   tags: [BOARD_TAG],
 }) as () => Promise<BoardStats>;
@@ -51,4 +56,30 @@ export const cachedActivity = unstable_cache(
   },
   ["board-activity"],
   { revalidate: 20, tags: [BOARD_TAG] },
+);
+
+/**
+ * Shorter window than the bid feed — clicks are the highest-frequency event on
+ * the site and the rail should feel close to real time without giving every
+ * visitor their own query.
+ */
+export const cachedClicks = unstable_cache(
+  async () => {
+    const rows = await getRecentClicks(10);
+    return rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }));
+  },
+  ["board-clicks"],
+  { revalidate: 10, tags: [BOARD_TAG] },
+);
+
+export const cachedSponsor = unstable_cache(
+  async () => getSponsorState(),
+  ["board-sponsor"],
+  { revalidate: 30, tags: [BOARD_TAG] },
+);
+
+export const cachedCategories = unstable_cache(
+  async () => getActiveCategories(),
+  ["board-categories"],
+  { revalidate: 60, tags: [BOARD_TAG] },
 );

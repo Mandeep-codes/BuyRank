@@ -3,6 +3,8 @@ import {
   CATEGORY_SLUGS,
   MAX_BID_CENTS,
   MIN_BID_CENTS,
+  SPONSOR_MAX_DAYS,
+  SPONSOR_PRICE_CENTS_PER_DAY,
 } from "@/lib/config";
 import { createCheckoutSession, paymentsConfigured } from "@/lib/dodo";
 import { scrapeMetadata } from "@/lib/metadata";
@@ -11,12 +13,17 @@ import { clientIp, rateLimit } from "@/lib/ratelimit";
 import { normalizeSubmission } from "@/lib/url";
 
 export const runtime = "nodejs";
+// The metadata scrape can take several seconds on slow targets.
+export const maxDuration = 30;
 
 type Body = {
   submission?: string;
   category?: string;
   bidDollars?: number | string;
   email?: string;
+  /** "sponsor" rents the promoted card instead of bidding for rank. */
+  kind?: string;
+  days?: number | string;
 };
 
 export async function POST(req: Request) {
@@ -49,6 +56,49 @@ export async function POST(req: Request) {
   const check = normalizeSubmission(body.submission ?? "");
   if (!check.ok) {
     return NextResponse.json({ error: check.reason }, { status: 400 });
+  }
+
+  // --- Sponsor rental ----------------------------------------------------
+  // Price is derived here from the day count, never taken from the browser.
+  if (body.kind === "sponsor") {
+    const days = Math.floor(Number(body.days));
+    if (!Number.isFinite(days) || days < 1 || days > SPONSOR_MAX_DAYS) {
+      return NextResponse.json(
+        { error: `Rentals run 1 to ${SPONSOR_MAX_DAYS} days.` },
+        { status: 400 },
+      );
+    }
+
+    const sponsorCents = days * SPONSOR_PRICE_CENTS_PER_DAY;
+    const meta = await scrapeMetadata(check.url);
+
+    try {
+      const session = await createCheckoutSession({
+        amountCents: sponsorCents,
+        email:
+          typeof body.email === "string" && /^\S+@\S+\.\S+$/.test(body.email)
+            ? body.email.trim()
+            : undefined,
+        successQuery: "sponsor=1",
+        metadata: {
+          kind: "sponsor",
+          url: check.url,
+          display_name: check.displayName,
+          title: meta.title ?? "",
+          description: meta.description ?? "",
+          favicon_url: meta.faviconUrl ?? "",
+          sponsor_days: String(days),
+          sponsor_cents: String(sponsorCents),
+        },
+      });
+      return NextResponse.json({ checkoutUrl: session.checkoutUrl });
+    } catch (error) {
+      console.error("[checkout:sponsor]", error);
+      return NextResponse.json(
+        { error: "Couldn't start checkout. Try again in a moment." },
+        { status: 502 },
+      );
+    }
   }
 
   // --- Validate the category --------------------------------------------
@@ -114,6 +164,7 @@ export async function POST(req: Request) {
     const session = await createCheckoutSession({
       amountCents,
       email,
+      successQuery: `u=${encodeURIComponent(check.displayName)}`,
       metadata: {
         url: check.url,
         display_name: check.displayName,

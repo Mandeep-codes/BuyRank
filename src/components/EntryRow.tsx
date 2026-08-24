@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { categoryLabel } from "@/lib/config";
-import { formatCompact, formatUsd, timeAgo } from "@/lib/format";
+import { Favicon } from "@/components/Favicon";
+import { formatCompact, formatDuration, formatUsd, timeAgo } from "@/lib/format";
 import { priceToBeat, type RankedEntry } from "@/lib/queries";
 
 /**
@@ -9,8 +9,20 @@ import { priceToBeat, type RankedEntry } from "@/lib/queries";
  * phone. Narrow-first: nothing here can push the row wider than its container.
  */
 export function EntryRow({ entry }: { entry: RankedEntry; leaderCents: number }) {
+  // How long the leader has held the top — measured from their last winning
+  // bid. Shown only past the first hour so a fresh takeover isn't "on top 2m".
+  const reign =
+    Number(entry.rank) === 1
+      ? formatDuration(Date.now() - new Date(entry.updatedAt).getTime(), 1)
+      : null;
+
+  const isTop = Number(entry.rank) === 1;
+
   return (
-    <li id={`entry-${entry.id}`} className="card mb-3 p-3.5 sm:p-5">
+    <li
+      id={`entry-${entry.id}`}
+      className={`card mb-3 p-4 sm:p-5 ${isTop ? "border-pop/50 bg-popsoft/60" : ""}`}
+    >
       <div className="flex items-start gap-3 sm:gap-4">
         <span
           className="rank h-8 w-9 shrink-0 text-[13px] sm:h-9 sm:w-11 sm:text-sm"
@@ -19,18 +31,13 @@ export function EntryRow({ entry }: { entry: RankedEntry; leaderCents: number })
           #{entry.rank}
         </span>
 
-        {entry.faviconUrl ? (
-          // Third-party favicons, not assets we control — plain img is right.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={entry.faviconUrl}
-            alt=""
-            width={44}
-            height={44}
-            loading="lazy"
-            className="hidden h-11 w-11 shrink-0 rounded-xl border border-cardline bg-paper object-contain p-1.5 sm:block"
-          />
-        ) : null}
+        <Favicon
+          src={entry.faviconUrl}
+          url={entry.url}
+          name={entry.displayName}
+          size={44}
+          className="flex h-10 w-10 shrink-0 rounded-xl border border-cardline bg-paper object-contain p-1.5 sm:h-12 sm:w-12"
+        />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
@@ -62,26 +69,47 @@ export function EntryRow({ entry }: { entry: RankedEntry; leaderCents: number })
             </p>
           ) : null}
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-mute sm:text-[13px]">
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-mute sm:text-[13px]">
             <time dateTime={new Date(entry.updatedAt).toISOString()}>
               {timeAgo(entry.updatedAt)}
             </time>
-            <Link
-              href={`/category/${entry.category}`}
-              className="transition hover:text-ink"
-            >
-              {categoryLabel(entry.category)}
-            </Link>
             <span className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-pop" aria-hidden />
               <span className="tnum">{formatCompact(entry.clicks)} clicks</span>
             </span>
-            <Link
-              href={`/?amount=${priceToBeat(entry.bidCents) / 100}#bid`}
-              className="tnum ml-auto font-semibold text-pop hover:underline"
-            >
-              take for {formatUsd(priceToBeat(entry.bidCents))}
-            </Link>
+            {isTop && reign ? (
+              <span className="tnum font-semibold text-pop">
+                on top {reign}
+              </span>
+            ) : null}
+            <span className="ml-auto flex items-center gap-3">
+              <Link
+                href={`/l/${entry.id}`}
+                aria-label={`Share page for ${entry.displayName}`}
+                className="text-mute transition hover:text-ink"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d="M7 17L17 7" />
+                  <path d="M9 7h8v8" />
+                </svg>
+              </Link>
+              <Link
+                href={`/?amount=${priceToBeat(entry.bidCents) / 100}#bid`}
+                className="tnum font-semibold text-pop hover:underline"
+              >
+                take for {formatUsd(priceToBeat(entry.bidCents))}
+              </Link>
+            </span>
           </div>
         </div>
       </div>

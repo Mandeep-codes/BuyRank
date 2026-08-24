@@ -19,17 +19,23 @@ const API_BASE = IS_TEST
 export type CheckoutMetadata = {
   url: string;
   display_name: string;
-  category: string;
-  bid_cents: string;
   title: string;
   description: string;
   favicon_url: string;
+  /** "listing" (rank bid) or "sponsor" (rented card). Absent means listing. */
+  kind?: string;
+  category?: string;
+  bid_cents?: string;
+  sponsor_days?: string;
+  sponsor_cents?: string;
 };
 
 export async function createCheckoutSession(input: {
   amountCents: number;
   metadata: CheckoutMetadata;
   email?: string;
+  /** Extra query for the success page, e.g. "u=acme.com". */
+  successQuery?: string;
 }): Promise<{ checkoutUrl: string; sessionId: string }> {
   const apiKey = process.env.DODO_PAYMENTS_API_KEY;
   const productId = process.env.DODO_PRODUCT_ID;
@@ -53,7 +59,7 @@ export async function createCheckoutSession(input: {
         },
       ],
       ...(input.email ? { customer: { email: input.email } } : {}),
-      return_url: `${SITE_URL}/success`,
+      return_url: `${SITE_URL}/success${input.successQuery ? `?${input.successQuery}` : ""}`,
       cancel_url: SITE_URL,
       // Bids are anonymous — don't make people type a full address for $1.
       minimal_address: true,
