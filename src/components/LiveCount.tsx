@@ -67,12 +67,20 @@ export function LiveCount() {
   if (!counts) return null;
 
   return (
-    <span className="flex items-center gap-1.5 text-sm font-semibold">
-      <span className="blink h-2 w-2 rounded-full bg-mint" aria-hidden />
-      <span className="tnum font-bold">
-        {counts.online.toLocaleString("en-US")}
+    <>
+      <span className="flex items-center gap-1.5 text-sm font-semibold">
+        <span className="blink h-2 w-2 rounded-full bg-mint" aria-hidden />
+        <span className="tnum font-bold">
+          {counts.online.toLocaleString("en-US")}
+        </span>
+        <span className="text-mute">online</span>
       </span>
-      <span className="text-mute">online</span>
-    </span>
+      <span className="hidden items-center gap-1.5 text-sm font-semibold sm:flex">
+        <span className="tnum font-bold">
+          {counts.total.toLocaleString("en-US")}
+        </span>
+        <span className="text-mute">visitors</span>
+      </span>
+    </>
   );
 }

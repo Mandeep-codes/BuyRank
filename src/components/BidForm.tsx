@@ -89,11 +89,11 @@ export function BidForm({
   }
 
   const field =
-    "w-full rounded-xl border-[3px] border-ink bg-paper px-4 py-3.5 text-[16px] font-semibold outline-none transition placeholder:font-normal placeholder:text-mute/70 focus:bg-zap/25";
+    "w-full rounded-xl border-[2.5px] border-ink bg-paper px-3.5 py-2.5 text-[15px] font-semibold outline-none transition placeholder:font-normal placeholder:text-mute/70 focus:bg-zap/25";
 
   return (
-    <form id="bid" onSubmit={handleSubmit} className="toon scroll-mt-6 bg-paper p-5 sm:p-6">
-      <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.16em] text-mute">
+    <form id="bid" onSubmit={handleSubmit} className="toon scroll-mt-6 bg-paper p-5">
+      <p className="mb-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-mute">
         List your product
       </p>
 
@@ -110,7 +110,7 @@ export function BidForm({
         />
       </label>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-[150px_1fr]">
+      <div className="mt-2.5 grid grid-cols-[110px_1fr] gap-2.5">
         <label className="relative block">
           <span className="sr-only">Your bid in dollars</span>
           <span className="tnum pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-mute">
@@ -142,7 +142,7 @@ export function BidForm({
         </label>
       </div>
 
-      <label className="mt-3 block">
+      <label className="mt-2.5 block">
         <span className="sr-only">Email for the receipt</span>
         <input
           value={email}
