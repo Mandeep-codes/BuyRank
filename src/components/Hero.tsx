@@ -30,7 +30,7 @@ export function Hero({
         No algorithm. No launch day.
       </p>
 
-      <div className="toon tilt-r mx-auto mt-9 inline-block bg-pop px-8 py-5">
+      <div className="toon tilt-r mx-auto mt-10 inline-block bg-pop px-10 py-6">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-paper/90">
           Top spot costs
         </p>

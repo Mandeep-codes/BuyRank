@@ -23,10 +23,10 @@
     background: var(--cream);
     /* Halftone dots — this is a printed comic page, not a dashboard. */
     background-image: radial-gradient(
-      rgba(28, 21, 18, 0.07) 1.5px,
-      transparent 1.5px
+      rgba(28, 21, 18, 0.045) 1.4px,
+      transparent 1.4px
     );
-    background-size: 18px 18px;
+    background-size: 22px 22px;
     color: var(--ink);
     font-family: var(--font-body), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -59,10 +59,12 @@
     background: var(--paper);
   }
 
+  /* Secondary surfaces. Lighter than .toon so the hero and the CTA are the
+     only things carrying full weight. */
   .toon-sm {
     border: 2.5px solid var(--ink);
     border-radius: 12px;
-    box-shadow: 3px 3px 0 var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
   }
 
   /* Buttons physically press into the page. */
@@ -168,12 +170,14 @@
     }
   }
 
+  /* Reserved for the price card and the section badges. Tilting list items as
+     well made the whole page look accidental rather than playful. */
   .tilt-l {
-    transform: rotate(-1.5deg);
+    transform: rotate(-1.25deg);
   }
 
   .tilt-r {
-    transform: rotate(1.5deg);
+    transform: rotate(1.25deg);
   }
 
   .tape {

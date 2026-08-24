@@ -4,7 +4,7 @@ import { EntryRow } from "@/components/EntryRow";
 import { Hero } from "@/components/Hero";
 import { Masthead } from "@/components/Masthead";
 import { Pagination } from "@/components/Pagination";
-import { Rail } from "@/components/Rail";
+import { ActivityStrip } from "@/components/ActivityStrip";
 import { SetupNotice, databaseErrorCode } from "@/components/SetupNotice";
 import { PAGE_SIZE } from "@/lib/config";
 import { paymentsConfigured } from "@/lib/dodo";
@@ -56,41 +56,25 @@ export default async function BoardPage({
       <Masthead stats={stats} />
 
       {/*
-        Three columns on desktop: the rails carry proof that money is moving,
-        the centre carries the single action. On mobile the rails fall below
-        the form, because the action matters more than the proof on a phone.
+        One centred column. This was three columns with a rail either side, but
+        both rails rendered the same feed — the page showed identical rows
+        twice. One strip below the form says it once.
       */}
-      <div className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)_minmax(0,1fr)] lg:items-start lg:gap-8">
-          <div className="order-2 lg:order-1">
-            <div className="tilt-l">
-              <Rail title="Recent bids" initial={activity} accent="zap" />
-            </div>
-          </div>
+      <div className="mx-auto max-w-5xl px-5 py-14 sm:py-20">
+        <Hero
+          priceForFirst={priceForFirst}
+          leader={leader}
+          topCents={stats.topCents}
+        />
 
-          <div className="order-1 lg:order-2">
-            <Hero
-              priceForFirst={priceForFirst}
-              leader={leader}
-              topCents={stats.topCents}
-            />
-            <div className="mx-auto mt-10 max-w-lg">
-              <BidForm
-                priceForFirst={priceForFirst}
-                enabled={paymentsConfigured()}
-              />
-            </div>
-          </div>
-
-          <div className="order-3">
-            <div className="tilt-r">
-              <Rail title="Who just paid" initial={activity} accent="sky" />
-            </div>
-          </div>
+        <div className="mx-auto mt-10 max-w-lg">
+          <BidForm priceForFirst={priceForFirst} enabled={paymentsConfigured()} />
         </div>
+
+        <ActivityStrip initial={activity} />
       </div>
 
-      <div className="mx-auto max-w-6xl px-5">
+      <div className="mx-auto max-w-5xl px-5">
         <div className="border-t-[3px] border-dashed border-ink/25 pt-12">
           <h2 className="font-display text-4xl font-bold tracking-tight">The board</h2>
           <p className="mt-2 text-[15px] font-semibold text-mute">
