@@ -68,14 +68,17 @@ export function LiveCount() {
 
   return (
     <>
-      <span className="flex items-center gap-1.5 text-sm font-semibold">
+      <span className="flex items-center gap-1.5">
         <span className="blink h-2 w-2 rounded-full bg-mint" aria-hidden />
         <span className="tnum font-bold">
           {counts.online.toLocaleString("en-US")}
         </span>
         <span className="text-mute">online</span>
       </span>
-      <span className="hidden items-center gap-1.5 text-sm font-semibold sm:flex">
+      <span className="text-mute/40" aria-hidden>
+        &middot;
+      </span>
+      <span className="flex items-center gap-1.5">
         <span className="tnum font-bold">
           {counts.total.toLocaleString("en-US")}
         </span>

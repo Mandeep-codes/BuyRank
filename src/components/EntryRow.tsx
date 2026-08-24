@@ -4,107 +4,85 @@ import { formatCompact, formatUsd, timeAgo } from "@/lib/format";
 import { priceToBeat, type RankedEntry } from "@/lib/queries";
 
 /**
- * Log scale. Linear would render the leader as a full bar and everything past
- * about tenth place as a sliver, hiding the shape of the board instead of
- * showing it.
+ * One board row. Built narrow-first: rank and price stay on the top line at
+ * every width, and the metadata wraps underneath rather than overflowing.
  */
-function depthWidth(bidCents: number, leaderCents: number): number {
-  if (leaderCents <= 0) return 0;
-  const share = Math.log10(bidCents + 100) / Math.log10(leaderCents + 100);
-  return Math.max(8, Math.min(100, share * 100));
-}
-
-export function EntryRow({
-  entry,
-  leaderCents,
-}: {
-  entry: RankedEntry;
-  leaderCents: number;
-}) {
+export function EntryRow({ entry }: { entry: RankedEntry; leaderCents: number }) {
   const isLead = entry.rank === 1;
 
   return (
     <li
-      className={`relative border-b-[3px] border-ink transition last:border-b-0 ${
-        isLead ? "bg-zap/35" : "bg-paper hover:bg-cream"
+      id={`entry-${entry.id}`}
+      className={`toon-sm relative mb-2.5 px-3 py-3 transition sm:px-4 ${
+        isLead ? "bg-zap/25" : "bg-paper"
       }`}
     >
-      <div
-        className="depth"
-        style={{ width: `${depthWidth(entry.bidCents, leaderCents)}%` }}
-        aria-hidden
-      />
-
-      <div className="relative flex items-start gap-3.5 px-3.5 py-4 sm:gap-4 sm:px-5">
-        {/* Rank badge — a stamped chip, not a number floating in space. */}
+      <div className="flex items-start gap-2.5 sm:gap-3">
         <span
-          className={`toon-sm flex h-10 w-10 shrink-0 items-center justify-center font-display text-base font-bold shadow-[2.5px_2.5px_0_var(--ink)] sm:h-11 sm:w-11 sm:text-lg ${
-            isLead ? "bg-pop text-paper" : entry.rank <= 3 ? "bg-zap" : "bg-paper"
+          className={`coin h-8 w-8 shrink-0 text-[13px] sm:h-9 sm:w-9 sm:text-sm ${
+            isLead ? "coin-gold" : ""
           }`}
           aria-hidden
         >
           {entry.rank}
         </span>
-        <span className="sr-only">Rank {entry.rank}</span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="flex items-start justify-between gap-2.5">
             <a
               href={`/r/${entry.id}`}
               target="_blank"
               rel="noopener nofollow sponsored"
-              className="group inline-flex min-w-0 items-center gap-2 font-bold transition hover:text-pop"
+              className="group inline-flex min-w-0 items-center gap-1.5 font-bold text-ink"
             >
               {entry.faviconUrl ? (
-                // Third-party favicons, not assets we control — plain img is right.
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={entry.faviconUrl}
                   alt=""
-                  width={18}
-                  height={18}
+                  width={16}
+                  height={16}
                   loading="lazy"
-                  className="h-[18px] w-[18px] shrink-0 rounded"
+                  className="h-4 w-4 shrink-0 rounded-sm"
                 />
               ) : null}
-              <span className="truncate underline-offset-4 group-hover:underline">
+              <span className="truncate text-[15px] underline-offset-4 group-hover:underline">
                 {entry.displayName}
               </span>
             </a>
 
-            <span className={`tag tnum font-bold ${isLead ? "text-lg" : "text-sm"}`}>
+            <span className="tnum shrink-0 text-base font-bold text-pop sm:text-lg">
               {formatUsd(entry.bidCents)}
             </span>
           </div>
 
           {entry.description ? (
-            <p className="mt-2 line-clamp-2 max-w-2xl text-sm font-medium leading-relaxed text-mute">
+            <p className="mt-1 line-clamp-2 text-[13px] font-medium leading-snug text-mute">
               {entry.description}
             </p>
           ) : null}
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold text-mute">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] font-semibold text-mute">
             <Link
               href={`/category/${entry.category}`}
-              className="transition hover:text-ink"
+              className="hover:text-ink"
             >
               {categoryLabel(entry.category)}
             </Link>
-            <span aria-hidden>&bull;</span>
+            <span aria-hidden>&middot;</span>
             <span className="tnum">{formatCompact(entry.clicks)} clicks</span>
-            <span aria-hidden>&bull;</span>
+            <span aria-hidden>&middot;</span>
             <time dateTime={new Date(entry.updatedAt).toISOString()}>
               {timeAgo(entry.updatedAt)}
             </time>
+            <Link
+              href={`/?amount=${priceToBeat(entry.bidCents) / 100}#bid`}
+              className="tnum ml-auto font-bold text-ink underline underline-offset-2 hover:text-pop"
+            >
+              take for {formatUsd(priceToBeat(entry.bidCents))}
+            </Link>
           </div>
         </div>
-
-        <Link
-          href={`/?amount=${priceToBeat(entry.bidCents) / 100}#bid`}
-          className="toon-sm press tnum hidden shrink-0 self-center whitespace-nowrap bg-sky/25 px-3.5 py-2 text-xs font-bold sm:block"
-        >
-          take it for {formatUsd(priceToBeat(entry.bidCents))}
-        </Link>
       </div>
     </li>
   );

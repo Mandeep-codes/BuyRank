@@ -53,10 +53,18 @@
 @layer components {
   /* Everything on this page is a sticker sitting on the page. */
   .toon {
-    border: 3px solid var(--ink);
-    border-radius: 16px;
-    box-shadow: 5px 5px 0 var(--ink);
+    border: 2.5px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: 3px 3px 0 var(--ink);
     background: var(--paper);
+  }
+
+  @media (min-width: 640px) {
+    .toon {
+      border-width: 3px;
+      border-radius: 16px;
+      box-shadow: 5px 5px 0 var(--ink);
+    }
   }
 
   /* Secondary surfaces. Lighter than .toon so the hero and the CTA are the
@@ -69,17 +77,25 @@
 
   /* Buttons physically press into the page. */
   .press {
-    border: 3px solid var(--ink);
-    border-radius: 16px;
-    box-shadow: 5px 5px 0 var(--ink);
+    border: 2.5px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: 3px 3px 0 var(--ink);
     transition:
       transform 90ms ease,
       box-shadow 90ms ease;
   }
 
+  @media (min-width: 640px) {
+    .press {
+      border-width: 3px;
+      border-radius: 16px;
+      box-shadow: 5px 5px 0 var(--ink);
+    }
+  }
+
   .press:hover:not(:disabled) {
     transform: translate(2px, 2px);
-    box-shadow: 3px 3px 0 var(--ink);
+    box-shadow: 1px 1px 0 var(--ink);
   }
 
   .press:active:not(:disabled) {
@@ -103,6 +119,8 @@
   }
 
   /* Rank medallion. Ranks are prizes here, so they get a coin. */
+  /* Steppers and rank badges double as touch targets, so they never go below
+     the 44px Apple/Android minimum on a phone. */
   .coin {
     display: grid;
     place-items: center;

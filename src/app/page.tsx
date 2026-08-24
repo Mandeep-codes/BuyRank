@@ -1,7 +1,6 @@
-import { BidForm } from "@/components/BidForm";
 import { CategoryPills } from "@/components/CategoryPills";
 import { EntryRow } from "@/components/EntryRow";
-import { Hero } from "@/components/Hero";
+import { ClaimPanel } from "@/components/ClaimPanel";
 import { Masthead } from "@/components/Masthead";
 import { Pagination } from "@/components/Pagination";
 import { ActivityStrip } from "@/components/ActivityStrip";
@@ -55,24 +54,15 @@ export default async function BoardPage({
     <main>
       <Masthead stats={stats} />
 
-      {/*
-        Split hero so the board clears the fold: pitch and price on the left,
-        the one action on the right. Board and recent bids sit directly under
-        it rather than a screen further down.
-      */}
-      <div className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-center lg:gap-14">
-          <Hero
-            priceForFirst={priceForFirst}
-            leader={leader}
-            topCents={stats.topCents}
-          />
-          <BidForm priceForFirst={priceForFirst} enabled={paymentsConfigured()} />
-        </div>
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-5 sm:py-14">
+        <ClaimPanel
+          priceForFirst={priceForFirst}
+          enabled={paymentsConfigured()}
+        />
       </div>
 
-      <div className="mx-auto max-w-6xl px-5">
-        <div className="grid gap-10 border-t-[3px] border-dashed border-ink/25 pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,17rem)] lg:gap-12">
+      <div className="mx-auto max-w-5xl px-4 sm:px-5">
+        <div className="grid gap-10 border-t-[3px] border-dashed border-ink/25 pt-9 lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] lg:gap-10">
           <div>
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="font-display text-2xl font-extrabold tracking-tight">
