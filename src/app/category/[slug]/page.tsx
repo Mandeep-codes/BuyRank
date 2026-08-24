@@ -4,9 +4,10 @@ import { CategoryPills } from "@/components/CategoryPills";
 import { EntryRow } from "@/components/EntryRow";
 import { Pagination } from "@/components/Pagination";
 import { CATEGORIES, categoryLabel, SITE_NAME } from "@/lib/config";
-import { getRankedEntries, getStats } from "@/lib/queries";
+import { cachedBoard, cachedStats } from "@/lib/cache";
 
-export const revalidate = 60;
+// Dynamic because of searchParams; the caching is in @/lib/cache.
+export const maxDuration = 60;
 
 export function generateStaticParams() {
   return CATEGORIES.map((c) => ({ slug: c.slug }));
@@ -39,8 +40,8 @@ export default async function CategoryPage({
 
   const page = Math.max(1, Number(pageParam) || 1);
   const [board, stats] = await Promise.all([
-    getRankedEntries({ page, category: slug }),
-    getStats(),
+    cachedBoard(page, slug),
+    cachedStats(),
   ]);
 
   return (

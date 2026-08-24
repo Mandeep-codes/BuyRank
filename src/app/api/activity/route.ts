@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server";
-import { getRecentActivity } from "@/lib/queries";
+import { cachedActivity } from "@/lib/cache";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
-/** Polled by the live tape every 20s. */
+/**
+ * Cached at the edge for 20 seconds. Every visitor polling this used to mean
+ * one database query each; now they all share one response per window, and the
+ * payment webhook's revalidatePath busts it the moment a real bid lands.
+ */
+export const revalidate = 20;
+
 export async function GET() {
   try {
-    const items = await getRecentActivity(12);
-    return NextResponse.json(
-      { items },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    const items = await cachedActivity();
+    return NextResponse.json({ items });
   } catch (error) {
     console.error("[activity]", error);
-    return NextResponse.json({ items: [] }, { status: 200 });
+    return NextResponse.json({ items: [] });
   }
 }

@@ -1,4 +1,5 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { BOARD_TAG } from "@/lib/cache";
 import { NextResponse } from "next/server";
 import { Webhook } from "standardwebhooks";
 import { CATEGORY_SLUGS, MIN_BID_CENTS } from "@/lib/config";
@@ -62,7 +63,10 @@ export async function POST(req: Request) {
     if (id) {
       try {
         const reversed = await reverseBid(id);
-        if (reversed) revalidatePath("/", "layout");
+        if (reversed) {
+          revalidateTag(BOARD_TAG);
+          revalidatePath("/", "layout");
+        }
         return NextResponse.json({ received: true, reversed });
       } catch (error) {
         console.error("[webhook] reverse failed", error);
@@ -112,6 +116,8 @@ export async function POST(req: Request) {
     });
 
     if (result.applied) {
+      // Tag first: it is what the board actually reads from.
+      revalidateTag(BOARD_TAG);
       revalidatePath("/", "layout");
     }
 

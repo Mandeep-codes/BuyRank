@@ -12,3 +12,5 @@ drizzle/meta
 .backup-*
 .env*.backup*
 *.sh
+.vercel
+.env*

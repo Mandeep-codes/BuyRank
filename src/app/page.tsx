@@ -8,17 +8,15 @@ import { Rail } from "@/components/Rail";
 import { SetupNotice, databaseErrorCode } from "@/components/SetupNotice";
 import { PAGE_SIZE } from "@/lib/config";
 import { paymentsConfigured } from "@/lib/dodo";
-import {
-  getRankedEntries,
-  getRecentActivity,
-  getStats,
-  priceToBeat,
-} from "@/lib/queries";
+import { cachedActivity, cachedBoard, cachedStats } from "@/lib/cache";
+import { priceToBeat } from "@/lib/queries";
 
-// Revalidated by the payment webhook whenever money moves.
-export const revalidate = 30;
-// Fail in 20s rather than burning the platform limit on a stuck query.
-export const maxDuration = 20;
+/**
+ * This route reads searchParams, so it renders dynamically — `revalidate` here
+ * would do nothing. The caching lives in @/lib/cache instead, around the
+ * queries themselves, and the payment webhook drops it when a bid lands.
+ */
+export const maxDuration = 60;
 
 export default async function BoardPage({
   searchParams,
@@ -34,9 +32,9 @@ export default async function BoardPage({
     // Three, not four. getPriceForFirst() used to re-run the entire ranking
     // query just to read the top bid — which stats already gives us.
     [board, stats, activity] = await Promise.all([
-      getRankedEntries({ page, category: null }),
-      getStats(),
-      getRecentActivity(12),
+      cachedBoard(page, null),
+      cachedStats(),
+      cachedActivity(),
     ]);
   } catch (error) {
     // Only intercept database problems we can explain. Everything else is a
@@ -47,11 +45,6 @@ export default async function BoardPage({
     }
     throw error;
   }
-
-  const feed = activity.map((a) => ({
-    ...a,
-    createdAt: a.createdAt.toISOString(),
-  }));
 
   const priceForFirst = stats.topCents > 0 ? priceToBeat(stats.topCents) : 100;
   const leader = page === 1 ? (board.rows[0]?.displayName ?? null) : null;
@@ -71,7 +64,7 @@ export default async function BoardPage({
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)_minmax(0,1fr)] lg:items-start lg:gap-8">
           <div className="order-2 lg:order-1">
             <div className="tilt-l">
-              <Rail title="Recent bids" initial={feed} accent="sun" />
+              <Rail title="Recent bids" initial={activity} accent="zap" />
             </div>
           </div>
 
@@ -91,7 +84,7 @@ export default async function BoardPage({
 
           <div className="order-3">
             <div className="tilt-r">
-              <Rail title="Who just paid" initial={feed} accent="sky" />
+              <Rail title="Who just paid" initial={activity} accent="sky" />
             </div>
           </div>
         </div>

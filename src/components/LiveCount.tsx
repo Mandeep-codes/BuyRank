@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "buyrank_visitor";
-const HEARTBEAT_MS = 60_000;
+const HEARTBEAT_MS = 90_000;
 
 /** Random, anonymous, generated in the browser. Not derived from anything. */
 function visitorToken(): string {

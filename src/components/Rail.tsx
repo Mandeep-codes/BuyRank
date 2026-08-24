@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { formatUsd, timeAgo } from "@/lib/format";
 
 type Item = {
@@ -12,10 +12,49 @@ type Item = {
 };
 
 /**
- * Live rails flanking the form. They carry the proof that money is actually
- * moving, which is the only thing that convinces a stranger to bid. Drawn as
- * speech bubbles: the board talking about itself.
+ * Both rails show the same feed, so they share one poll instead of running an
+ * interval each. First rail to mount starts the timer, last to unmount stops
+ * it — so this stays at one request per 20s no matter how many rails render.
  */
+const POLL_MS = 20_000;
+
+let snapshot: Item[] = [];
+const listeners = new Set<() => void>();
+let timer: ReturnType<typeof setInterval> | null = null;
+let inFlight = false;
+
+async function poll() {
+  if (inFlight) return;
+  inFlight = true;
+  try {
+    const res = await fetch("/api/activity");
+    if (!res.ok) return;
+    const data = (await res.json()) as { items: Item[] };
+    if (Array.isArray(data.items)) {
+      snapshot = data.items;
+      listeners.forEach((l) => l());
+    }
+  } catch {
+    // A dropped poll isn't worth surfacing; the next one catches up.
+  } finally {
+    inFlight = false;
+  }
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  if (listeners.size === 1) {
+    timer = setInterval(poll, POLL_MS);
+  }
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0 && timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  };
+}
+
 export function Rail({
   title,
   initial,
@@ -23,30 +62,22 @@ export function Rail({
 }: {
   title: string;
   initial: Item[];
-  accent: "sun" | "sky";
+  accent: "zap" | "sky";
 }) {
-  const [items, setItems] = useState(initial);
+  // Fall back to the server-rendered list until the first poll lands. Reading
+  // rather than assigning keeps render pure.
+  const items = useSyncExternalStore(
+    subscribe,
+    () => (snapshot.length > 0 ? snapshot : initial),
+    () => initial,
+  );
 
-  useEffect(() => {
-    const id = setInterval(async () => {
-      try {
-        const res = await fetch("/api/activity", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = (await res.json()) as { items: Item[] };
-        if (data.items?.length) setItems(data.items);
-      } catch {
-        // A dropped poll isn't worth surfacing; the next one catches up.
-      }
-    }, 20_000);
-    return () => clearInterval(id);
-  }, []);
-
-  const chip = accent === "sun" ? "bg-zap" : "bg-sky";
+  const chip = accent === "zap" ? "bg-zap" : "bg-sky";
 
   return (
     <aside>
       <p
-        className={`toon-sm ${chip} ${accent === "sun" ? "tilt-l" : "tilt-r"} mx-auto mb-6 w-fit px-4 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.14em]`}
+        className={`toon-sm ${chip} ${accent === "zap" ? "tilt-l" : "tilt-r"} mx-auto mb-6 w-fit px-4 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.14em]`}
       >
         {title}
       </p>
@@ -63,10 +94,7 @@ export function Rail({
               className={`bubble px-3.5 py-3 ${i % 2 ? "tilt-r" : "tilt-l"}`}
             >
               <div className="flex items-center gap-3">
-                <span
-                  className={`coin h-9 w-9 shrink-0 text-[11px] ${chip}`}
-                  aria-hidden
-                >
+                <span className={`coin h-9 w-9 shrink-0 text-[11px] ${chip}`} aria-hidden>
                   {item.displayName.slice(0, 2).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1">
