@@ -1,8 +1,9 @@
 import { formatUsd } from "@/lib/format";
 
 /**
- * The headline states the deal; the coin under it prices it. That price climbs
- * every time somebody pays, which is the entire pitch.
+ * Compact, left-aligned, and sized so the board clears the fold. This used to
+ * be a centred full-height block — a leaderboard site where you have to scroll
+ * past the headline to reach the leaderboard has its priorities backwards.
  */
 export function Hero({
   priceForFirst,
@@ -14,8 +15,8 @@ export function Hero({
   topCents: number;
 }) {
   return (
-    <div className="text-center">
-      <h1 className="font-display text-[clamp(2.5rem,7vw,4.5rem)] font-extrabold leading-[0.95] tracking-tight">
+    <div>
+      <h1 className="font-display text-[clamp(2rem,4.4vw,3.1rem)] font-extrabold leading-[1.02] tracking-tight">
         Every rank here
         <br />
         has a{" "}
@@ -25,30 +26,32 @@ export function Hero({
         </span>
       </h1>
 
-      <p className="mx-auto mt-5 max-w-md text-lg font-semibold text-mute">
-        Pay a dollar more than the listing above you and take its spot. No votes.
-        No algorithm. No launch day.
+      <p className="mt-4 max-w-md text-[15px] font-semibold leading-relaxed text-mute">
+        Pay a dollar more than the listing above you and take its spot. No
+        votes. No algorithm. No launch day.
       </p>
 
-      <div className="toon tilt-r mx-auto mt-10 inline-block bg-pop px-10 py-6">
-        <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-paper/90">
-          Top spot costs
-        </p>
-        <p className="font-display text-[clamp(2.75rem,9vw,4.5rem)] font-extrabold leading-none text-paper">
-          {formatUsd(priceForFirst)}
+      <div className="mt-7 flex flex-wrap items-center gap-4">
+        <div className="toon tilt-r inline-block bg-pop px-6 py-3.5">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-paper/90">
+            Top spot costs
+          </p>
+          <p className="font-display text-[2.6rem] font-extrabold leading-none text-paper">
+            {formatUsd(priceForFirst)}
+          </p>
+        </div>
+
+        <p className="max-w-[14rem] text-sm font-semibold text-mute">
+          {leader ? (
+            <>
+              <span className="text-ink">{leader}</span> is holding it at{" "}
+              <span className="tnum">{formatUsd(topCents)}</span>
+            </>
+          ) : (
+            "Nobody has bid yet. The first dollar takes it."
+          )}
         </p>
       </div>
-
-      <p className="mt-5 text-[15px] font-semibold text-mute">
-        {leader ? (
-          <>
-            <span className="text-ink">{leader}</span> is holding it at{" "}
-            <span className="tnum">{formatUsd(topCents)}</span>
-          </>
-        ) : (
-          "Nobody has bid yet. The first dollar takes it."
-        )}
-      </p>
     </div>
   );
 }

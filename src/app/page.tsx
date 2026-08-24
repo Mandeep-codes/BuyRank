@@ -56,51 +56,50 @@ export default async function BoardPage({
       <Masthead stats={stats} />
 
       {/*
-        One centred column. This was three columns with a rail either side, but
-        both rails rendered the same feed — the page showed identical rows
-        twice. One strip below the form says it once.
+        Split hero so the board clears the fold: pitch and price on the left,
+        the one action on the right. Board and recent bids sit directly under
+        it rather than a screen further down.
       */}
-      <div className="mx-auto max-w-5xl px-5 py-14 sm:py-20">
-        <Hero
-          priceForFirst={priceForFirst}
-          leader={leader}
-          topCents={stats.topCents}
-        />
-
-        <div className="mx-auto mt-10 max-w-lg">
+      <div className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-center lg:gap-14">
+          <Hero
+            priceForFirst={priceForFirst}
+            leader={leader}
+            topCents={stats.topCents}
+          />
           <BidForm priceForFirst={priceForFirst} enabled={paymentsConfigured()} />
         </div>
-
-        <ActivityStrip initial={activity} />
       </div>
 
-      <div className="mx-auto max-w-5xl px-5">
-        <div className="border-t-[3px] border-dashed border-ink/25 pt-12">
-          <h2 className="font-display text-4xl font-bold tracking-tight">The board</h2>
-          <p className="mt-2 text-[15px] font-semibold text-mute">
-            Ranked by standing bid. Nothing else moves a listing up.
-          </p>
-
-          <div className="mt-7">
-            <CategoryPills />
-          </div>
-
-          {board.rows.length === 0 ? (
-            <div className="toon mt-8 bg-zap/30 px-6 py-20 text-center">
-              <p className="font-display text-3xl font-bold tracking-tight">
-                The board is empty
-              </p>
-              <p className="mt-2 text-sm font-semibold text-mute">
-                The first listing costs $1 and takes the top spot.
-              </p>
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="grid gap-10 border-t-[3px] border-dashed border-ink/25 pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,17rem)] lg:gap-12">
+          <div>
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <h2 className="font-display text-2xl font-extrabold tracking-tight">
+                The board
+              </h2>
+              {board.rows.length > 0 ? (
+                <p className="tnum text-[11px] font-bold uppercase tracking-[0.16em] text-mute">
+                  {first}&ndash;{last} of {board.total.toLocaleString("en-US")}
+                </p>
+              ) : null}
             </div>
-          ) : (
-            <>
-              <p className="tnum mt-7 text-[11px] font-bold uppercase tracking-[0.14em] text-mute">
-                {first}&ndash;{last} of {board.total.toLocaleString("en-US")}
-              </p>
 
-              <ol className="toon mt-3 overflow-hidden p-0">
+            <div className="mt-5">
+              <CategoryPills />
+            </div>
+
+            {board.rows.length === 0 ? (
+              <div className="toon mt-6 bg-paper px-6 py-16 text-center">
+                <p className="font-display text-2xl font-extrabold tracking-tight">
+                  The board is empty
+                </p>
+                <p className="mt-2 text-sm font-semibold text-mute">
+                  The first listing costs $1 and takes the top spot.
+                </p>
+              </div>
+            ) : (
+              <ol className="mt-5">
                 {board.rows.map((entry) => (
                   <EntryRow
                     key={entry.id}
@@ -109,10 +108,12 @@ export default async function BoardPage({
                   />
                 ))}
               </ol>
+            )}
 
-              <Pagination page={page} pages={board.pages} basePath="/" />
-            </>
-          )}
+            <Pagination page={page} pages={board.pages} basePath="/" />
+          </div>
+
+          <ActivityStrip initial={activity} />
         </div>
       </div>
     </main>

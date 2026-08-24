@@ -92,13 +92,17 @@ export function BidForm({
     "w-full rounded-xl border-[3px] border-ink bg-paper px-4 py-3.5 text-[16px] font-semibold outline-none transition placeholder:font-normal placeholder:text-mute/70 focus:bg-zap/25";
 
   return (
-    <form id="bid" onSubmit={handleSubmit} className="scroll-mt-6">
+    <form id="bid" onSubmit={handleSubmit} className="toon scroll-mt-6 bg-paper p-5 sm:p-6">
+      <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.16em] text-mute">
+        List your product
+      </p>
+
       <label className="block">
         <span className="sr-only">Product URL or @handle</span>
         <input
           value={submission}
           onChange={(e) => setSubmission(e.target.value)}
-          placeholder="Paste your product URL here…"
+          placeholder="yourproduct.com"
           autoComplete="url"
           spellCheck={false}
           required

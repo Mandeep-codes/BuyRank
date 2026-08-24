@@ -12,12 +12,8 @@ type Item = {
 };
 
 /**
- * One horizontal strip of recent bids, replacing the two side rails. Those
- * rails were rendering the same feed twice — identical rows on both sides of
- * the page, which reads as a bug rather than a feature.
- *
- * Single poll shared across every mount: first subscriber starts the timer,
- * last one stops it.
+ * Recent bids, as a column beside the board. One poll shared across every
+ * mount — first subscriber starts the timer, last one stops it.
  */
 const POLL_MS = 20_000;
 
@@ -63,37 +59,41 @@ export function ActivityStrip({ initial }: { initial: Item[] }) {
     () => initial,
   );
 
-  // Nothing to say yet — stay out of the way rather than showing an empty box.
-  if (items.length === 0) return null;
-
   return (
-    <section className="mt-16">
-      <p className="mb-5 text-center text-[11px] font-extrabold uppercase tracking-[0.18em] text-mute">
+    <aside>
+      <h2 className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-mute">
         Recent bids
-      </p>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {items.slice(0, 4).map((item) => (
-          <li
-            key={item.id}
-            className="toon-sm flex items-center gap-3 bg-paper px-3.5 py-3"
-          >
-            <span className="coin h-9 w-9 shrink-0 bg-zap text-[11px]" aria-hidden>
-              {item.displayName.slice(0, 2).toUpperCase()}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[15px] font-bold leading-tight">
-                {item.displayName}
+      </h2>
+
+      {items.length === 0 ? (
+        <p className="mt-4 text-sm font-semibold text-mute">
+          Nothing yet. The first bid shows up here.
+        </p>
+      ) : (
+        <ul className="mt-4 space-y-2.5">
+          {items.slice(0, 7).map((item) => (
+            <li
+              key={item.id}
+              className="toon-sm flex items-center gap-2.5 bg-paper px-3 py-2.5"
+            >
+              <span className="coin h-8 w-8 shrink-0 bg-zap text-[10px]" aria-hidden>
+                {item.displayName.slice(0, 2).toUpperCase()}
               </span>
-              <span className="block text-xs font-semibold text-mute">
-                {timeAgo(item.createdAt)}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-bold leading-tight">
+                  {item.displayName}
+                </span>
+                <span className="block text-[11px] font-semibold text-mute">
+                  {timeAgo(item.createdAt)}
+                </span>
               </span>
-            </span>
-            <span className="tnum shrink-0 font-bold text-pop">
-              {formatUsd(item.amountCents)}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </section>
+              <span className="tnum shrink-0 text-sm font-bold text-pop">
+                {formatUsd(item.amountCents)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
   );
 }
