@@ -321,6 +321,8 @@ export async function getRecentClicks(limit = 10): Promise<TrafficItem[]> {
     .limit(limit);
 }
 
+export type SponsorTierId = "premium" | "plus" | "standard";
+
 export type SponsorState = {
   current: {
     entryId: string;
@@ -338,11 +340,14 @@ export type SponsorState = {
   nextOpenAt: string;
 };
 
-export async function getSponsorState(): Promise<SponsorState> {
+export type AllSponsorStates = Record<SponsorTierId, SponsorState>;
+
+export async function getSponsorStates(): Promise<AllSponsorStates> {
   const now = new Date();
 
-  const [slot] = await db
+  const activeSlots = await db
     .select({
+      tier: sponsorSlots.tier,
       entryId: sponsorSlots.entryId,
       displayName: entries.displayName,
       title: entries.title,
@@ -361,44 +366,56 @@ export async function getSponsorState(): Promise<SponsorState> {
         sql`${sponsorSlots.endsAt} > now()`,
       ),
     )
-    .orderBy(sponsorSlots.startsAt)
-    .limit(1);
+    .orderBy(sponsorSlots.startsAt);
 
-  const [queueTail] = await db
-    .select({ endsAt: sql<string>`max(${sponsorSlots.endsAt})` })
+  const tails = await db
+    .select({
+      tier: sponsorSlots.tier,
+      endsAt: sql<string>`max(${sponsorSlots.endsAt})`,
+    })
     .from(sponsorSlots)
-    .where(and(eq(sponsorSlots.status, "active"), gt(sponsorSlots.endsAt, now)));
+    .where(and(eq(sponsorSlots.status, "active"), gt(sponsorSlots.endsAt, now)))
+    .groupBy(sponsorSlots.tier);
 
-  const nextOpenAt = queueTail?.endsAt ? new Date(queueTail.endsAt) : now;
+  const states = {} as AllSponsorStates;
 
-  if (!slot) {
-    return { current: null, nextOpenAt: nextOpenAt.toISOString() };
+  for (const tier of ["premium", "plus", "standard"] as const) {
+    const slot = activeSlots.find((s) => s.tier === tier);
+    const tail = tails.find((t) => t.tier === tier);
+    const nextOpenAt = tail?.endsAt ? new Date(tail.endsAt) : now;
+
+    if (!slot) {
+      states[tier] = { current: null, nextOpenAt: nextOpenAt.toISOString() };
+      continue;
+    }
+
+    const [clicksRow] = await db
+      .select({ n: count() })
+      .from(clickEvents)
+      .where(
+        and(
+          eq(clickEvents.entryId, slot.entryId),
+          gt(clickEvents.createdAt, slot.startsAt),
+        ),
+      );
+
+    states[tier] = {
+      current: {
+        entryId: slot.entryId,
+        displayName: slot.displayName,
+        title: slot.title,
+        description: slot.description,
+        faviconUrl: slot.faviconUrl,
+        url: slot.url,
+        windowClicks: Number(clicksRow?.n ?? 0),
+        startsAt: slot.startsAt.toISOString(),
+        endsAt: slot.endsAt.toISOString(),
+      },
+      nextOpenAt: nextOpenAt.toISOString(),
+    };
   }
 
-  const [clicksRow] = await db
-    .select({ n: count() })
-    .from(clickEvents)
-    .where(
-      and(
-        eq(clickEvents.entryId, slot.entryId),
-        gt(clickEvents.createdAt, slot.startsAt),
-      ),
-    );
-
-  return {
-    current: {
-      entryId: slot.entryId,
-      displayName: slot.displayName,
-      title: slot.title,
-      description: slot.description,
-      faviconUrl: slot.faviconUrl,
-      url: slot.url,
-      windowClicks: Number(clicksRow?.n ?? 0),
-      startsAt: slot.startsAt.toISOString(),
-      endsAt: slot.endsAt.toISOString(),
-    },
-    nextOpenAt: nextOpenAt.toISOString(),
-  };
+  return states;
 }
 
 /**
@@ -415,6 +432,7 @@ export async function settleSponsor(input: {
   days: number;
   amountCents: number;
   paymentId: string;
+  tier: SponsorTierId;
 }): Promise<{ applied: boolean }> {
   return db.transaction(async (tx) => {
     // The sponsored product doesn't have to be on the ranked board — a zero
@@ -440,11 +458,17 @@ export async function settleSponsor(input: {
       })
       .returning({ id: entries.id });
 
+    // Queues are per tier: buying Premium while Premium runs queues behind
+    // it, but never blocks the other placements.
     const [tail] = await tx
       .select({ endsAt: sql<string>`max(${sponsorSlots.endsAt})` })
       .from(sponsorSlots)
       .where(
-        and(eq(sponsorSlots.status, "active"), gt(sponsorSlots.endsAt, new Date())),
+        and(
+          eq(sponsorSlots.status, "active"),
+          eq(sponsorSlots.tier, input.tier),
+          gt(sponsorSlots.endsAt, new Date()),
+        ),
       );
 
     const startsAt = tail?.endsAt ? new Date(tail.endsAt) : new Date();
@@ -456,6 +480,7 @@ export async function settleSponsor(input: {
         entryId: entry.id,
         paymentId: input.paymentId,
         amountCents: input.amountCents,
+        tier: input.tier,
         startsAt,
         endsAt,
       })

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cachedSponsor } from "@/lib/cache";
+import { cachedSponsors } from "@/lib/cache";
 
 export const runtime = "nodejs";
 
@@ -8,13 +8,13 @@ export const revalidate = 30;
 
 export async function GET() {
   try {
-    const state = await cachedSponsor();
-    return NextResponse.json(state);
+    const tiers = await cachedSponsors();
+    return NextResponse.json({ tiers });
   } catch (error) {
     console.error("[sponsor]", error);
+    const empty = { current: null, nextOpenAt: new Date().toISOString() };
     return NextResponse.json({
-      current: null,
-      nextOpenAt: new Date().toISOString(),
+      tiers: { premium: empty, plus: empty, standard: empty },
     });
   }
 }

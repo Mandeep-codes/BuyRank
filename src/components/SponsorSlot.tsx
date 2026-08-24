@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Favicon } from "@/components/Favicon";
-import { SPONSOR_MAX_DAYS, SPONSOR_PRICE_CENTS_PER_DAY } from "@/lib/config";
+import { SPONSOR_MAX_DAYS, type SponsorTier } from "@/lib/config";
 import { formatUsd } from "@/lib/format";
-import type { SponsorState } from "@/lib/queries";
+import type { AllSponsorStates, SponsorState } from "@/lib/queries";
 
 /** "6h 6m left" — under an hour it switches to minutes only. */
 function timeLeft(endsAt: string, now: number): string {
@@ -18,14 +18,17 @@ function timeLeft(endsAt: string, now: number): string {
 }
 
 /**
- * One rail slot, two states. Rented: the sponsor's card, with clicks counted
- * from this rental's own start and a live countdown. Open: the rent form —
- * which is the honest empty state, an offer instead of a placeholder.
+ * One placement, two states. Rented: the sponsor's card, clicks counted from
+ * this rental's own start, live countdown. Open: the rent form — an offer
+ * instead of a placeholder. Placement height on the page tracks price:
+ * Premium sits highest, Standard lowest.
  */
 export function SponsorSlot({
+  tier,
   initial,
   enabled,
 }: {
+  tier: SponsorTier;
   initial: SponsorState;
   enabled: boolean;
 }) {
@@ -38,7 +41,10 @@ export function SponsorSlot({
     const refresh = setInterval(async () => {
       try {
         const res = await fetch("/api/sponsor");
-        if (res.ok) setState((await res.json()) as SponsorState);
+        if (!res.ok) return;
+        const data = (await res.json()) as { tiers?: AllSponsorStates };
+        const next = data.tiers?.[tier.id];
+        if (next) setState(next);
       } catch {
         // Keep showing the last known state.
       }
@@ -47,7 +53,7 @@ export function SponsorSlot({
       clearInterval(tick);
       clearInterval(refresh);
     };
-  }, []);
+  }, [tier.id]);
 
   const current = state.current;
   const rented = current && new Date(current.endsAt).getTime() > now;
@@ -96,16 +102,18 @@ export function SponsorSlot({
           </p>
         </>
       ) : (
-        <RentForm enabled={enabled} nextOpenAt={state.nextOpenAt} />
+        <RentForm tier={tier} enabled={enabled} nextOpenAt={state.nextOpenAt} />
       )}
     </div>
   );
 }
 
 function RentForm({
+  tier,
   enabled,
   nextOpenAt,
 }: {
+  tier: SponsorTier;
   enabled: boolean;
   nextOpenAt: string;
 }) {
@@ -126,7 +134,12 @@ function RentForm({
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: "sponsor", submission: url, days }),
+        body: JSON.stringify({
+          kind: "sponsor",
+          submission: url,
+          days,
+          tier: tier.id,
+        }),
       });
       const data = (await res.json()) as { checkoutUrl?: string; error?: string };
       if (!res.ok || !data.checkoutUrl) {
@@ -143,7 +156,7 @@ function RentForm({
 
   return (
     <section
-      aria-label="Rent the sponsored spot"
+      aria-label={`Rent the ${tier.label} sponsored spot`}
       className="rounded-[18px] border border-dashed border-pop/50 bg-wash p-4 text-center"
     >
       <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-popsoft text-[17px] font-extrabold text-pop shadow-sm">
@@ -153,9 +166,9 @@ function RentForm({
         Promote your project here
       </p>
       <p className="mt-1 text-[12px] leading-snug text-mute">
-        This card, rented by the day for{" "}
+        {tier.label} placement,{" "}
         <span className="font-bold text-ink">
-          {formatUsd(SPONSOR_PRICE_CENTS_PER_DAY)} / day
+          {formatUsd(tier.priceCentsPerDay)} / day
         </span>
         . Clicks on it are counted and shown.
       </p>
@@ -212,7 +225,7 @@ function RentForm({
               </button>
             </div>
             <span className="tnum text-[14px] font-extrabold text-pop">
-              {formatUsd(days * SPONSOR_PRICE_CENTS_PER_DAY)}
+              {formatUsd(days * tier.priceCentsPerDay)}
             </span>
           </div>
           <button

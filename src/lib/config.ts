@@ -17,8 +17,27 @@ export const MAX_BID_CENTS = 5_000_000;
 /** Rows shown per page. */
 export const PAGE_SIZE = 50;
 
-/** The rented "Sponsored" card, priced per day. */
-export const SPONSOR_PRICE_CENTS_PER_DAY = 500;
+/**
+ * Sponsored placements, priced by position. Each tier is its own card with
+ * its own queue; higher tiers sit higher on the page. Prices are server-
+ * derived at checkout — never trusted from the browser.
+ */
+export type SponsorTier = {
+  id: "premium" | "plus" | "standard";
+  label: string;
+  priceCentsPerDay: number;
+};
+
+export const SPONSOR_TIERS: SponsorTier[] = [
+  { id: "premium", label: "Premium", priceCentsPerDay: 2_500 },
+  { id: "plus", label: "Plus", priceCentsPerDay: 1_500 },
+  { id: "standard", label: "Standard", priceCentsPerDay: 500 },
+];
+
+export function sponsorTier(id: string): SponsorTier | null {
+  return SPONSOR_TIERS.find((t) => t.id === id) ?? null;
+}
+
 /** Longest single rental. Keeps the queue short and the spot contestable. */
 export const SPONSOR_MAX_DAYS = 7;
 
@@ -54,7 +73,6 @@ export const CATEGORIES = [
   { slug: "security-privacy", label: "Security, Privacy & Compliance" },
   { slug: "media-generation", label: "AI Media Generation" },
   { slug: "audio-podcasting", label: "Audio, Voice & Podcasting" },
-  { slug: "cloud-hosting", label: "Cloud & Hosting" },
   { slug: "domains-assets", label: "Domains & Web Assets" },
   { slug: "people-profiles", label: "People & Profiles" },
   { slug: "other", label: "Other" },

@@ -4,7 +4,7 @@ import {
   MAX_BID_CENTS,
   MIN_BID_CENTS,
   SPONSOR_MAX_DAYS,
-  SPONSOR_PRICE_CENTS_PER_DAY,
+  sponsorTier,
 } from "@/lib/config";
 import { createCheckoutSession, paymentsConfigured } from "@/lib/dodo";
 import { scrapeMetadata } from "@/lib/metadata";
@@ -21,9 +21,10 @@ type Body = {
   category?: string;
   bidDollars?: number | string;
   email?: string;
-  /** "sponsor" rents the promoted card instead of bidding for rank. */
+  /** "sponsor" rents a promoted card instead of bidding for rank. */
   kind?: string;
   days?: number | string;
+  tier?: string;
 };
 
 export async function POST(req: Request) {
@@ -69,7 +70,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const sponsorCents = days * SPONSOR_PRICE_CENTS_PER_DAY;
+    const tier = sponsorTier(String(body.tier ?? "standard"));
+    if (!tier) {
+      return NextResponse.json({ error: "Unknown placement." }, { status: 400 });
+    }
+
+    const sponsorCents = days * tier.priceCentsPerDay;
     const meta = await scrapeMetadata(check.url);
 
     try {
@@ -89,6 +95,7 @@ export async function POST(req: Request) {
           favicon_url: meta.faviconUrl ?? "",
           sponsor_days: String(days),
           sponsor_cents: String(sponsorCents),
+          sponsor_tier: tier.id,
         },
       });
       return NextResponse.json({ checkoutUrl: session.checkoutUrl });

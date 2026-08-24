@@ -7,14 +7,14 @@ import { ActivityStrip } from "@/components/ActivityStrip";
 import { ClickTicker } from "@/components/ClickTicker";
 import { SponsorSlot } from "@/components/SponsorSlot";
 import { SetupNotice, databaseErrorCode } from "@/components/SetupNotice";
-import { PAGE_SIZE } from "@/lib/config";
+import { PAGE_SIZE, SPONSOR_TIERS } from "@/lib/config";
 import { paymentsConfigured } from "@/lib/dodo";
 import {
   cachedActivity,
   cachedBoard,
   cachedCategories,
   cachedClicks,
-  cachedSponsor,
+  cachedSponsors,
   cachedStats,
 } from "@/lib/cache";
 import { priceToBeat } from "@/lib/queries";
@@ -34,15 +34,15 @@ export default async function BoardPage({
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
 
-  let board, stats, activity, clicks, sponsor, categories;
+  let board, stats, activity, clicks, sponsors, categories;
 
   try {
-    [board, stats, activity, clicks, sponsor, categories] = await Promise.all([
+    [board, stats, activity, clicks, sponsors, categories] = await Promise.all([
       cachedBoard(page, null),
       cachedStats(),
       cachedActivity(),
       cachedClicks(),
-      cachedSponsor(),
+      cachedSponsors(),
       cachedCategories(),
     ]);
   } catch (error) {
@@ -82,7 +82,22 @@ export default async function BoardPage({
       </div>
 
       <div className="mx-auto max-w-5xl min-w-0 px-4 sm:px-5">
-        <div className="grid gap-10 border-t border-rule pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] lg:gap-10">
+        {/* Placement tracks price: Premium tops the left rail, Plus sits
+            under it, Standard keeps its right-rail spot above the bids. On
+            phones the board stays first and the placements follow it. */}
+        <div className="grid gap-10 border-t border-rule pt-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,16rem)] lg:gap-8">
+          <div className="order-2 min-w-0 lg:order-1">
+            <SponsorSlot
+              tier={SPONSOR_TIERS[0]}
+              initial={sponsors.premium}
+              enabled={paymentsConfigured()}
+            />
+            <SponsorSlot
+              tier={SPONSOR_TIERS[1]}
+              initial={sponsors.plus}
+              enabled={paymentsConfigured()}
+            />
+          </div>
           <div>
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="text-xl font-extrabold tracking-tight">
@@ -123,8 +138,12 @@ export default async function BoardPage({
             <Pagination page={page} pages={board.pages} basePath="/" />
           </div>
 
-          <div>
-            <SponsorSlot initial={sponsor} enabled={paymentsConfigured()} />
+          <div className="order-3 min-w-0">
+            <SponsorSlot
+              tier={SPONSOR_TIERS[2]}
+              initial={sponsors.standard}
+              enabled={paymentsConfigured()}
+            />
             <ActivityStrip initial={activity} />
           </div>
         </div>

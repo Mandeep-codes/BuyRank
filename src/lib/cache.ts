@@ -4,7 +4,7 @@ import {
   getRankedEntries,
   getRecentActivity,
   getRecentClicks,
-  getSponsorState,
+  getSponsorStates,
   getStats,
   type BoardStats,
   type RankedEntry,
@@ -72,9 +72,9 @@ export const cachedClicks = unstable_cache(
   { revalidate: 10, tags: [BOARD_TAG] },
 );
 
-export const cachedSponsor = unstable_cache(
-  async () => getSponsorState(),
-  ["board-sponsor"],
+export const cachedSponsors = unstable_cache(
+  async () => getSponsorStates(),
+  ["board-sponsor-tiers"],
   { revalidate: 30, tags: [BOARD_TAG] },
 );
 

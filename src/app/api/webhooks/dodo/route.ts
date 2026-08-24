@@ -2,7 +2,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { BOARD_TAG } from "@/lib/cache";
 import { NextResponse } from "next/server";
 import { Webhook } from "standardwebhooks";
-import { CATEGORY_SLUGS, MIN_BID_CENTS } from "@/lib/config";
+import { CATEGORY_SLUGS, MIN_BID_CENTS, sponsorTier } from "@/lib/config";
 import type { DodoWebhookPayload } from "@/lib/dodo";
 import { reverseBid, reverseSponsor, settleBid, settleSponsor } from "@/lib/queries";
 import { scrapeMetadata } from "@/lib/metadata";
@@ -100,6 +100,9 @@ export async function POST(req: Request) {
       console.warn("[webhook] implausible sponsor metadata", paymentId);
       return NextResponse.json({ received: true });
     }
+    // Old checkout sessions predate tiers; they settle into "standard".
+    const tier = sponsorTier(meta.sponsor_tier ?? "")?.id ?? "standard";
+
     try {
       const result = await settleSponsor({
         url: meta.url,
@@ -110,6 +113,7 @@ export async function POST(req: Request) {
         days,
         amountCents: sponsorCents,
         paymentId,
+        tier,
       });
       if (result.applied) {
         revalidateTag(BOARD_TAG);

@@ -28,6 +28,7 @@ export type CheckoutMetadata = {
   bid_cents?: string;
   sponsor_days?: string;
   sponsor_cents?: string;
+  sponsor_tier?: string;
 };
 
 export async function createCheckoutSession(input: {

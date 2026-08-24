@@ -134,6 +134,8 @@ export const sponsorSlots = pgTable(
     amountCents: integer("amount_cents").notNull(),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    /** premium | plus | standard — which placement this rental bought. */
+    tier: text("tier").notNull().default("standard"),
     /** active | reversed — reversed slots keep their row but never render. */
     status: text("status").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true })

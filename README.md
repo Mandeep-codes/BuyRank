@@ -341,3 +341,13 @@ tint plus the reign chip as the only emphasis; hero rhythm tightened.
   server-side inside getStats and rendered on first paint, with the
   heartbeat updating them live after — no more vanishing segments or the
   orphan dot while the first heartbeat is in flight.
+
+
+## Sponsor tiers (Aug 2026)
+
+Three placements, priced by position, each with its own back-to-back queue:
+Premium ($25/day) tops the new left rail at the board, Plus ($15/day) sits
+under it, Standard ($5/day) keeps the right-rail spot above Recent Bids.
+Same Dodo product and webhook; sessions carry `sponsor_tier`, old sessions
+settle into Standard, and the existing rental stays exactly where it was
+bought. Every card still shows clicks measured inside its own rental window.
