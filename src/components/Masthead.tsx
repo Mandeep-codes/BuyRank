@@ -7,7 +7,7 @@ import { LiveCount } from "./LiveCount";
 export function Masthead({ stats }: { stats: BoardStats }) {
   return (
     <header>
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="rank h-8 w-8 text-[15px]">
             {SITE_NAME.charAt(0).toUpperCase()}
@@ -17,7 +17,7 @@ export function Masthead({ stats }: { stats: BoardStats }) {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-5 text-[15px] font-medium text-mute sm:gap-7">
+        <nav className="flex shrink-0 items-center gap-4 text-[14px] font-medium text-mute sm:gap-7 sm:text-[15px]">
           <Link href="/rules" className="transition hover:text-ink">
             Rules
           </Link>

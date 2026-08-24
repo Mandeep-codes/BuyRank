@@ -54,14 +54,14 @@ export default async function BoardPage({
     <main>
       <Masthead stats={stats} />
 
-      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-5 sm:py-14">
+      <div className="mx-auto max-w-5xl min-w-0 px-4 py-8 sm:px-5 sm:py-14">
         <ClaimPanel
           priceForFirst={priceForFirst}
           enabled={paymentsConfigured()}
         />
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-5">
+      <div className="mx-auto max-w-5xl min-w-0 px-4 sm:px-5">
         <div className="grid gap-10 border-t border-rule pt-9 lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] lg:gap-10">
           <div>
             <div className="flex flex-wrap items-baseline justify-between gap-3">

@@ -112,7 +112,7 @@ export function ClaimPanel({
 
   return (
     <section id="bid" className="scroll-mt-4 text-center">
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
+      <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap sm:gap-x-4 sm:gap-y-3">
         <h1 className="text-[clamp(1.9rem,6.5vw,3.4rem)] font-extrabold leading-none tracking-tight">
           Claim #1 for
         </h1>
@@ -149,7 +149,7 @@ export function ClaimPanel({
       </p>
 
       <form onSubmit={handleSubmit} className="mx-auto mt-8 max-w-3xl text-left">
-        <div className="grid gap-2.5 sm:grid-cols-[1fr_minmax(0,12rem)_auto]">
+        <div className="grid min-w-0 gap-2.5 md:grid-cols-[minmax(0,1fr)_minmax(0,12rem)_auto]">
           <label className="block">
             <span className="sr-only">Product URL or @handle</span>
             <input
@@ -182,7 +182,7 @@ export function ClaimPanel({
           <button
             type="submit"
             disabled={!enabled || pending || belowMinimum || !submission}
-            className="pill w-full bg-pop px-9 py-[0.95rem] text-[16px] font-bold text-paper transition hover:bg-[#d9542f] disabled:cursor-not-allowed disabled:bg-popsoft disabled:text-pop/50 sm:w-auto"
+            className="pill w-full min-w-0 bg-pop px-9 py-[0.95rem] text-[16px] font-bold text-paper transition hover:bg-[#d9542f] disabled:cursor-not-allowed disabled:bg-popsoft disabled:text-pop/50 md:w-auto"
           >
             {!enabled ? "Soon" : pending ? "…" : "Outbid"}
           </button>
