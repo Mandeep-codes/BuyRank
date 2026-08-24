@@ -11,10 +11,7 @@ type Item = {
   entryId: string;
 };
 
-/**
- * Recent bids, as a column beside the board. One poll shared across every
- * mount — first subscriber starts the timer, last one stops it.
- */
+/** One poll shared across every mount, started by the first subscriber. */
 const POLL_MS = 20_000;
 
 let snapshot: Item[] = [];
@@ -61,33 +58,27 @@ export function ActivityStrip({ initial }: { initial: Item[] }) {
 
   return (
     <aside>
-      <h2 className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-mute">
+      <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-mute">
         Recent bids
       </h2>
 
       {items.length === 0 ? (
-        <p className="mt-4 text-sm font-semibold text-mute">
+        <p className="mt-4 text-sm text-mute">
           Nothing yet. The first bid shows up here.
         </p>
       ) : (
-        <ul className="mt-4 space-y-2.5">
+        <ul className="mt-4 space-y-2">
           {items.slice(0, 7).map((item) => (
-            <li
-              key={item.id}
-              className="toon-sm flex items-center gap-2.5 bg-paper px-3 py-2.5"
-            >
-              <span className="coin h-8 w-8 shrink-0 bg-zap text-[10px]" aria-hidden>
-                {item.displayName.slice(0, 2).toUpperCase()}
-              </span>
+            <li key={item.id} className="card flex items-center gap-3 px-3.5 py-2.5">
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-bold leading-tight">
+                <span className="block truncate text-[14px] font-semibold leading-tight">
                   {item.displayName}
                 </span>
-                <span className="block text-[11px] font-semibold text-mute">
+                <span className="block text-[12px] text-mute">
                   {timeAgo(item.createdAt)}
                 </span>
               </span>
-              <span className="tnum shrink-0 text-sm font-bold text-pop">
+              <span className="tnum shrink-0 text-[15px] font-bold text-pop">
                 {formatUsd(item.amountCents)}
               </span>
             </li>

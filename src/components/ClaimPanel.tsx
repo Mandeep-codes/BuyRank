@@ -107,52 +107,49 @@ export function ClaimPanel({
     }
   }
 
-  const field =
-    "w-full rounded-xl border-[2.5px] border-ink bg-paper px-4 py-3 text-[16px] font-semibold outline-none transition placeholder:font-normal placeholder:text-mute/70 focus:bg-zap/20";
-
-  // 16px minimum on inputs, or iOS Safari zooms the page on focus.
-  const stepper =
-    "coin h-11 w-11 shrink-0 bg-paper text-2xl leading-none active:translate-y-[2px] active:shadow-none disabled:opacity-30";
+  // 44px touch targets; .field pins font-size to 16px so iOS doesn't zoom.
+  const stepper = "step h-11 w-11 shrink-0 text-2xl font-semibold";
 
   return (
     <section id="bid" className="scroll-mt-4 text-center">
-      <h1 className="font-display text-[clamp(1.75rem,7vw,3.25rem)] font-extrabold leading-tight tracking-tight">
-        Claim #1 for
-      </h1>
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
+        <h1 className="text-[clamp(1.9rem,6.5vw,3.4rem)] font-extrabold leading-none tracking-tight">
+          Claim #1 for
+        </h1>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => step(-100)}
+            disabled={amountCents <= minimum}
+            className={stepper}
+            aria-label="Lower the bid by one dollar"
+          >
+            &minus;
+          </button>
 
-      <div className="mt-4 flex items-center justify-center gap-3 sm:gap-4">
-        <button
-          type="button"
-          onClick={() => step(-100)}
-          disabled={amountCents <= minimum}
-          className={stepper}
-          aria-label="Lower the bid by one dollar"
-        >
-          &minus;
-        </button>
+          <span className="tnum text-[clamp(2.2rem,9vw,3.4rem)] font-extrabold leading-none tracking-tight text-pop">
+            {formatUsd(amountCents)}
+          </span>
 
-        <span className="tnum min-w-[4.5ch] font-display text-[clamp(2.5rem,12vw,4.5rem)] font-extrabold leading-none text-pop">
-          {formatUsd(amountCents)}
-        </span>
-
-        <button
-          type="button"
-          onClick={() => step(100)}
-          className={stepper}
-          aria-label="Raise the bid by one dollar"
-        >
-          +
-        </button>
+          <button
+            type="button"
+            onClick={() => step(100)}
+            className={stepper}
+            aria-label="Raise the bid by one dollar"
+          >
+            +
+          </button>
+        </div>
       </div>
 
-      <p className="mx-auto mt-5 max-w-md text-[15px] font-semibold leading-relaxed text-mute">
-        <span className="text-pop">New listings start at $1.</span> Bidding less
-        than the top price still puts you on the board, at whatever place that
-        amount can take.
+      <p className="mx-auto mt-6 max-w-xl text-[16px] leading-relaxed text-mute">
+        <span className="font-semibold text-pop">New listings start at $1.</span>{" "}
+        Bidding less than the top price still puts you on the board, at whatever
+        place that amount can take.
       </p>
 
-      <form onSubmit={handleSubmit} className="mx-auto mt-7 max-w-2xl text-left">
-        <div className="grid gap-2.5 sm:grid-cols-[1fr_minmax(0,11rem)_auto]">
+      <form onSubmit={handleSubmit} className="mx-auto mt-8 max-w-3xl text-left">
+        <div className="grid gap-2.5 sm:grid-cols-[1fr_minmax(0,12rem)_auto]">
           <label className="block">
             <span className="sr-only">Product URL or @handle</span>
             <input
@@ -163,7 +160,7 @@ export function ClaimPanel({
               autoCapitalize="none"
               spellCheck={false}
               required
-              className={field}
+              className="field"
             />
           </label>
 
@@ -172,7 +169,7 @@ export function ClaimPanel({
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className={field}
+              className="field"
             >
               {CATEGORIES.map((c) => (
                 <option key={c.slug} value={c.slug}>
@@ -185,9 +182,9 @@ export function ClaimPanel({
           <button
             type="submit"
             disabled={!enabled || pending || belowMinimum || !submission}
-            className="press w-full bg-pop px-7 py-3 font-display text-lg font-extrabold text-paper disabled:cursor-not-allowed disabled:bg-mute/40 sm:w-auto"
+            className="pill w-full bg-pop px-9 py-[0.95rem] text-[16px] font-bold text-paper transition hover:bg-[#d9542f] disabled:cursor-not-allowed disabled:bg-popsoft disabled:text-pop/50 sm:w-auto"
           >
-            {!enabled ? "Soon" : pending ? "…" : "Bid"}
+            {!enabled ? "Soon" : pending ? "…" : "Outbid"}
           </button>
         </div>
 
@@ -200,11 +197,11 @@ export function ClaimPanel({
             placeholder="Email for your receipt (optional)"
             autoComplete="email"
             autoCapitalize="none"
-            className={`${field} py-2.5`}
+            className="field py-3"
           />
         </label>
 
-        <p className="mt-3 min-h-[2.5rem] text-center text-[13px] font-semibold leading-snug text-mute">
+        <p className="mt-4 min-h-[2.25rem] text-center text-[14px] leading-snug text-mute">
           {!enabled ? (
             "Bidding opens as soon as payment setup is finished."
           ) : error ? (

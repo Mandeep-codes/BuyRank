@@ -1,28 +1,15 @@
 import type { Metadata } from "next";
-import { Baloo_2, Nunito, Space_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
-import { Analytics } from "@vercel/analytics/next";
 import { CONTACT_EMAIL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/config";
 import "./globals.css";
 
-const display = Baloo_2({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["600", "700", "800"],
-  display: "swap",
-});
-
-const body = Nunito({
+// One family throughout, the way the reference does it — weight carries the
+// hierarchy instead of a second face.
+const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-body",
-  weight: ["400", "600", "700", "800"],
-  display: "swap",
-});
-
-const mono = Space_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  weight: ["400", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -55,17 +42,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${display.variable} ${body.variable} ${mono.variable}`}
+      className={`${sans.variable}`}
     >
       <body className="min-h-screen antialiased">
         {children}
-        <Analytics />
-        <footer className="mt-24 border-t-[3px] border-ink bg-zap">
-          <div className="mx-auto max-w-6xl px-5 py-8">
-            <p className="text-[15px] font-bold">
+        <footer className="mt-24 border-t border-rule">
+          <div className="mx-auto max-w-5xl px-4 py-9 sm:px-5">
+            <p className="text-[15px] font-semibold">
               Every rank on this board was paid for. Nobody voted.
             </p>
-            <nav className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-[15px] font-semibold">
+            <nav className="mt-3.5 flex flex-wrap gap-x-6 gap-y-2 text-[15px] text-mute">
               <Link href="/about" className="underline-offset-4 hover:underline">
                 About
               </Link>
@@ -88,7 +74,7 @@ export default function RootLayout({
                 Contact
               </a>
             </nav>
-            <p className="mt-4 text-sm font-semibold text-ink/70">
+            <p className="mt-4 text-sm text-mute">
               Listings start at $1. One-time payment, no subscription. Payments
               handled by Dodo Payments.
             </p>

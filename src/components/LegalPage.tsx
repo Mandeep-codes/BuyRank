@@ -13,11 +13,11 @@ export function LegalPage({
 }) {
   return (
     <main className="mx-auto max-w-2xl px-5 py-10">
-      <Link href="/" className="font-display text-2xl font-extrabold">
+      <Link href="/" className="text-2xl font-extrabold">
         {SITE_NAME}
       </Link>
 
-      <h1 className="mt-10 font-display text-4xl font-extrabold tracking-tight">
+      <h1 className="mt-10 text-4xl font-extrabold tracking-tight">
         {title}
       </h1>
       <p className="mt-2 text-sm font-semibold text-mute">
@@ -38,7 +38,7 @@ export function Clause({
 }) {
   return (
     <section>
-      <h2 className="font-display text-xl font-extrabold tracking-tight">
+      <h2 className="text-xl font-extrabold tracking-tight">
         {heading}
       </h2>
       <div className="mt-2.5 space-y-2.5 text-[15px] leading-relaxed text-mute">

@@ -9,11 +9,11 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <main className="mx-auto max-w-2xl px-5 py-8">
-      <Link href="/" className="font-display text-2xl font-extrabold font-bold tracking-tight">
+      <Link href="/" className="text-2xl font-extrabold font-bold tracking-tight">
         {SITE_NAME}
       </Link>
 
-      <h1 className="mt-12 font-display text-5xl font-extrabold font-bold tracking-tight">
+      <h1 className="mt-12 text-5xl font-extrabold font-bold tracking-tight">
         About
       </h1>
 

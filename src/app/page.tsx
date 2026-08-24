@@ -62,10 +62,10 @@ export default async function BoardPage({
       </div>
 
       <div className="mx-auto max-w-5xl px-4 sm:px-5">
-        <div className="grid gap-10 border-t-[3px] border-dashed border-ink/25 pt-9 lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] lg:gap-10">
+        <div className="grid gap-10 border-t border-rule pt-9 lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] lg:gap-10">
           <div>
             <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h2 className="font-display text-2xl font-extrabold tracking-tight">
+              <h2 className="text-xl font-extrabold tracking-tight">
                 The board
               </h2>
               {board.rows.length > 0 ? (
@@ -80,8 +80,8 @@ export default async function BoardPage({
             </div>
 
             {board.rows.length === 0 ? (
-              <div className="toon mt-6 bg-paper px-6 py-16 text-center">
-                <p className="font-display text-2xl font-extrabold tracking-tight">
+              <div className="card mt-6 px-6 py-16 text-center">
+                <p className="text-xl font-extrabold tracking-tight">
                   The board is empty
                 </p>
                 <p className="mt-2 text-sm font-semibold text-mute">
@@ -89,7 +89,7 @@ export default async function BoardPage({
                 </p>
               </div>
             ) : (
-              <ol className="mt-5">
+              <ol className="mt-4">
                 {board.rows.map((entry) => (
                   <EntryRow
                     key={entry.id}

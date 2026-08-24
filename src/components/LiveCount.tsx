@@ -7,18 +7,19 @@ const HEARTBEAT_MS = 90_000;
 
 /** Random, anonymous, generated in the browser. Not derived from anything. */
 function visitorToken(): string {
+  const make = () => {
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  };
   try {
     const existing = localStorage.getItem(STORAGE_KEY);
     if (existing && /^[0-9a-f]{32}$/.test(existing)) return existing;
-    const bytes = crypto.getRandomValues(new Uint8Array(16));
-    const token = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    const token = make();
     localStorage.setItem(STORAGE_KEY, token);
     return token;
   } catch {
-    // Private browsing with storage disabled — still count as online, just
-    // don't persist, so this visit shows up once and expires.
-    const bytes = crypto.getRandomValues(new Uint8Array(16));
-    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    // Private browsing with storage disabled — still count, just don't persist.
+    return make();
   }
 }
 
@@ -49,8 +50,6 @@ export function LiveCount() {
 
     beat();
     const timer = setInterval(beat, HEARTBEAT_MS);
-
-    // Beat again when the tab comes back, so returning readers show as online.
     const onVisible = () => {
       if (document.visibilityState === "visible") beat();
     };
@@ -63,26 +62,23 @@ export function LiveCount() {
     };
   }, []);
 
-  // Render nothing until the first response, so the header doesn't flash a zero.
+  // Render nothing until the first response, so the pill never flashes a zero.
   if (!counts) return null;
 
   return (
     <>
       <span className="flex items-center gap-1.5">
-        <span className="blink h-2 w-2 rounded-full bg-mint" aria-hidden />
-        <span className="tnum font-bold">
-          {counts.online.toLocaleString("en-US")}
+        <span className="blink h-1.5 w-1.5 rounded-full bg-mint" aria-hidden />
+        <span className="tnum font-semibold text-mint">
+          {counts.online.toLocaleString("en-US")} online
         </span>
-        <span className="text-mute">online</span>
       </span>
-      <span className="text-mute/40" aria-hidden>
-        &middot;
-      </span>
-      <span className="flex items-center gap-1.5">
-        <span className="tnum font-bold">
+      <span aria-hidden>&middot;</span>
+      <span>
+        <span className="tnum font-semibold text-ink">
           {counts.total.toLocaleString("en-US")}
-        </span>
-        <span className="text-mute">visitors</span>
+        </span>{" "}
+        visitors since launch
       </span>
     </>
   );

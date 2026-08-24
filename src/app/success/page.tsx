@@ -13,7 +13,7 @@ export default async function SuccessPage({
 
   return (
     <main className="mx-auto flex min-h-[70vh] max-w-lg flex-col justify-center px-5 text-center">
-      <h1 className="font-display text-4xl font-extrabold font-bold tracking-tight">
+      <h1 className="text-4xl font-extrabold font-bold tracking-tight">
         {failed ? "That payment didn't go through" : "You're on the board"}
       </h1>
       <p className="mt-3 text-[15px] leading-relaxed text-mute">
@@ -23,7 +23,7 @@ export default async function SuccessPage({
       </p>
       <Link
         href="/"
-        className="mx-auto mt-8 rounded-lg bg-pop px-6 py-3 text-[15px] font-medium text-paper transition hover:bg-pop"
+        className="pill mx-auto mt-8 bg-pop px-7 py-3.5 text-[16px] font-bold text-paper transition hover:bg-[#d9542f]"
       >
         {failed ? "Back to the board" : `See it on ${SITE_NAME}`}
       </Link>

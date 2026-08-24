@@ -46,11 +46,11 @@ export default async function CategoryPage({
 
   return (
     <main className="mx-auto max-w-4xl px-5 py-8">
-      <Link href="/" className="font-display text-2xl font-extrabold font-bold tracking-tight">
+      <Link href="/" className="text-2xl font-extrabold font-bold tracking-tight">
         {SITE_NAME}
       </Link>
 
-      <h1 className="mt-10 font-display text-4xl font-extrabold font-bold tracking-tight">
+      <h1 className="mt-10 text-4xl font-extrabold font-bold tracking-tight">
         {categoryLabel(slug)}
       </h1>
       <p className="mt-2 text-[15px] text-mute">

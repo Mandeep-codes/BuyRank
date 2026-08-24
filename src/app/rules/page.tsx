@@ -50,11 +50,11 @@ const SECTIONS = [
 export default function RulesPage() {
   return (
     <main className="mx-auto max-w-2xl px-5 py-8">
-      <Link href="/" className="font-display text-2xl font-extrabold font-bold tracking-tight">
+      <Link href="/" className="text-2xl font-extrabold font-bold tracking-tight">
         {SITE_NAME}
       </Link>
 
-      <h1 className="mt-12 font-display text-5xl font-extrabold font-bold tracking-tight">
+      <h1 className="mt-12 text-5xl font-extrabold font-bold tracking-tight">
         Rules
       </h1>
       <p className="mt-3 text-[15px] leading-relaxed text-mute">
@@ -64,7 +64,7 @@ export default function RulesPage() {
       <div className="mt-12 space-y-12">
         {SECTIONS.map((section) => (
           <section key={section.heading}>
-            <h2 className="font-display text-2xl font-extrabold font-bold tracking-tight">
+            <h2 className="text-2xl font-extrabold font-bold tracking-tight">
               {section.heading}
             </h2>
             <ul className="mt-4 space-y-3">

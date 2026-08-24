@@ -73,7 +73,7 @@ export function SetupNotice({ code }: { code: string }) {
       <p className="text-[11px] uppercase tracking-[0.24em] text-pop">
         Setup incomplete
       </p>
-      <h1 className="mt-4 font-display text-4xl font-extrabold font-bold leading-tight tracking-tight text-ink">
+      <h1 className="mt-4 text-4xl font-extrabold font-bold leading-tight tracking-tight text-ink">
         {issue.title}
       </h1>
       <p className="mt-4 text-[15px] leading-relaxed text-mute">{issue.detail}</p>
