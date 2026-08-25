@@ -86,7 +86,7 @@ export default async function BoardPage({
             under it, Standard keeps its right-rail spot above the bids. On
             phones the board stays first and the placements follow it. */}
         <div className="grid gap-10 border-t border-rule pt-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,16rem)] lg:gap-8">
-          <div className="order-2 min-w-0 lg:order-1">
+          <div className="order-2 min-w-0 lg:order-none">
             <SponsorSlot
               tier={SPONSOR_TIERS[0]}
               initial={sponsors.premium}
@@ -98,7 +98,7 @@ export default async function BoardPage({
               enabled={paymentsConfigured()}
             />
           </div>
-          <div>
+          <div className="order-1 min-w-0 lg:order-none">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="text-xl font-extrabold tracking-tight">
                 The board
@@ -138,7 +138,7 @@ export default async function BoardPage({
             <Pagination page={page} pages={board.pages} basePath="/" />
           </div>
 
-          <div className="order-3 min-w-0">
+          <div className="order-3 min-w-0 lg:order-none">
             <SponsorSlot
               tier={SPONSOR_TIERS[2]}
               initial={sponsors.standard}

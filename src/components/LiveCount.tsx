@@ -88,25 +88,19 @@ export function LiveCount({
   // strength. Nothing is padded — the segment just waits its turn.
   const showOnline = counts.online >= MIN_ONLINE_TO_SHOW;
 
+  // Optional segments own their trailing separator, so nothing can leave an
+  // orphan dot behind when it hides.
+  if (!showOnline) return null;
+
   return (
     <>
-      {showOnline ? (
-        <>
-          <span className="flex items-center gap-1.5">
-            <span className="blink h-1.5 w-1.5 rounded-full bg-mint" aria-hidden />
-            <span className="tnum font-semibold text-mint">
-              {counts.online.toLocaleString("en-US")} online
-            </span>
-          </span>
-          <span aria-hidden>&middot;</span>
-        </>
-      ) : null}
-      <span>
-        <span className="tnum font-semibold text-ink">
-          {counts.total.toLocaleString("en-US")}
-        </span>{" "}
-        visitors since launch
+      <span className="flex items-center gap-1.5">
+        <span className="blink h-1.5 w-1.5 rounded-full bg-mint" aria-hidden />
+        <span className="tnum font-semibold text-mint">
+          {counts.online.toLocaleString("en-US")} online
+        </span>
       </span>
+      <span aria-hidden>&middot;</span>
     </>
   );
 }
