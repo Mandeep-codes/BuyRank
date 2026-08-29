@@ -22,7 +22,7 @@ export function Masthead({ stats }: { stats: BoardStats }) {
           </span>
         </Link>
 
-        <span className="hidden text-[13px] text-dim lg:block">
+        <span className="hidden text-[13px] text-dim md:block">
           Rank is bought, not earned
         </span>
 
