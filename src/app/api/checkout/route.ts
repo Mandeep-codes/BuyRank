@@ -72,7 +72,10 @@ export async function POST(req: Request) {
 
     const tier = sponsorTier(String(body.tier ?? "standard"));
     if (!tier) {
-      return NextResponse.json({ error: "Unknown placement." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Unknown placement." },
+        { status: 400 },
+      );
     }
 
     const sponsorCents = days * tier.priceCentsPerDay;
@@ -126,7 +129,10 @@ export async function POST(req: Request) {
 
   const amountCents = dollars * 100;
   if (amountCents < MIN_BID_CENTS) {
-    return NextResponse.json({ error: "The minimum bid is $1." }, { status: 400 });
+    return NextResponse.json(
+      { error: "The minimum bid is $1." },
+      { status: 400 },
+    );
   }
   if (amountCents > MAX_BID_CENTS) {
     return NextResponse.json(

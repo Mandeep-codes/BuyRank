@@ -21,7 +21,8 @@ export async function POST(req: Request) {
   };
 
   const check = normalizeSubmission(submission ?? "");
-  if (!check.ok) return NextResponse.json({ error: check.reason }, { status: 400 });
+  if (!check.ok)
+    return NextResponse.json({ error: check.reason }, { status: 400 });
 
   const existing = await getEntryByUrl(check.url);
 

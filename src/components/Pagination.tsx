@@ -17,21 +17,17 @@ export function Pagination({
   return (
     <nav
       aria-label="Pagination"
-      className="mt-8 flex flex-wrap items-center justify-center gap-2"
+      className="mt-8 flex flex-wrap items-center gap-1.5"
     >
       {shown.map((p, i) => {
         const gap = i > 0 && p - shown[i - 1] > 1;
         return (
-          <span key={p} className="flex items-center gap-2">
-            {gap ? <span className="px-1 text-mute">…</span> : null}
+          <span key={p} className="flex items-center gap-1.5">
+            {gap ? <span className="px-1 text-[11px] text-dim">…</span> : null}
             <Link
               href={p === 1 ? basePath : `${basePath}?page=${p}`}
               aria-current={p === page ? "page" : undefined}
-              className={`tnum min-w-10 rounded-full px-3.5 py-2 text-center text-sm font-semibold transition ${
-                p === page
-                  ? "bg-pop text-paper"
-                  : "bg-wash text-mute hover:bg-popsoft hover:text-pop"
-              }`}
+              className={`chip tnum justify-center px-3 ${p === page ? "chip-on" : ""}`}
             >
               {p}
             </Link>

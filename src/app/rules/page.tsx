@@ -49,29 +49,32 @@ const SECTIONS = [
 
 export default function RulesPage() {
   return (
-    <main className="mx-auto max-w-2xl px-5 py-8">
-      <Link href="/" className="text-2xl font-extrabold font-bold tracking-tight">
-        {SITE_NAME}
+    <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+      <Link
+        href="/"
+        className="text-[11px] font-semibold tracking-[0.01em] text-dim transition hover:text-ink"
+      >
+        &larr; {SITE_NAME}
       </Link>
 
-      <h1 className="mt-12 text-5xl font-extrabold font-bold tracking-tight">
+      <h1 className="mt-10 text-[44px] font-bold leading-none tracking-[-0.02em]">
         Rules
       </h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-mute">
+      <p className="mt-3 text-[15px] leading-relaxed text-dim">
         Short version: you pay, you rank, you don&apos;t get it back.
       </p>
 
-      <div className="mt-12 space-y-12">
+      <div className="mt-12 space-y-11 pt-10">
         {SECTIONS.map((section) => (
           <section key={section.heading}>
-            <h2 className="text-2xl font-extrabold font-bold tracking-tight">
+            <h2 className="text-[22px] font-bold tracking-[-0.02em]">
               {section.heading}
             </h2>
             <ul className="mt-4 space-y-3">
               {section.points.map((point) => (
                 <li
                   key={point}
-                  className="border-l-2 border-ink/20 pl-4 text-[15px] leading-relaxed text-mute"
+                  className="rounded-2xl bg-wash px-5 py-4 text-[14px] leading-relaxed text-dim"
                 >
                   {point}
                 </li>

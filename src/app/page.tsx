@@ -6,8 +6,9 @@ import { Pagination } from "@/components/Pagination";
 import { ActivityStrip } from "@/components/ActivityStrip";
 import { ClickTicker } from "@/components/ClickTicker";
 import { SponsorSlot } from "@/components/SponsorSlot";
+import { Staircase } from "@/components/Staircase";
 import { SetupNotice, databaseErrorCode } from "@/components/SetupNotice";
-import { PAGE_SIZE, SPONSOR_TIERS } from "@/lib/config";
+import { SPONSOR_TIERS } from "@/lib/config";
 import { paymentsConfigured } from "@/lib/dodo";
 import {
   cachedActivity,
@@ -56,97 +57,112 @@ export default async function BoardPage({
   }
 
   const priceForFirst = stats.topCents > 0 ? priceToBeat(stats.topCents) : 100;
-  // Who holds #1 — the hero names the fight instead of an abstract claim.
+  // Who holds #1 — the page names the fight instead of an abstract claim.
   const top = board.rows[0];
   // postgres returns window-function output as a string; compare loosely-cast.
   const leader =
     page === 1 && top && Number(top.rank) === 1
       ? { name: top.displayName, cents: top.bidCents }
       : null;
-  const first = (page - 1) * PAGE_SIZE + 1;
-  const last = Math.min(page * PAGE_SIZE, board.total);
+  const paying = paymentsConfigured();
 
   return (
     <main>
       <Masthead stats={stats} />
       <ClickTicker initial={clicks} />
 
-      {/* Tighter than before on purpose: the board is the product, and it
-          should reach the first screen instead of sitting under a scroll. */}
-      <div className="mx-auto max-w-5xl min-w-0 px-4 py-5 sm:px-5 sm:py-7">
-        <ClaimPanel
-          priceForFirst={priceForFirst}
-          enabled={paymentsConfigured()}
-          leader={leader}
-        />
-      </div>
-
-      <div className="mx-auto max-w-5xl min-w-0 px-4 sm:px-5">
-        {/* Placement tracks price: Premium tops the left rail, Plus sits
-            under it, Standard keeps its right-rail spot above the bids. On
-            phones the board stays first and the placements follow it. */}
-        <div className="grid gap-10 border-t border-rule pt-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,16rem)] lg:gap-8">
-          <div className="order-2 min-w-0 lg:order-none">
+      {/* The object on its sweep, with the placements either side of it. */}
+      <div className="mx-auto max-w-[86rem] px-5 pb-6 pt-10 sm:px-8 sm:pt-14">
+        <div className="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)_15rem] lg:gap-10">
+          <div className="order-2 grid gap-4 lg:order-none lg:pt-6">
+            <p className="label">Sponsored ads</p>
             <SponsorSlot
               tier={SPONSOR_TIERS[0]}
+              index={1}
               initial={sponsors.premium}
-              enabled={paymentsConfigured()}
+              enabled={paying}
             />
             <SponsorSlot
               tier={SPONSOR_TIERS[1]}
+              index={2}
               initial={sponsors.plus}
-              enabled={paymentsConfigured()}
+              enabled={paying}
             />
           </div>
+
           <div className="order-1 min-w-0 lg:order-none">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h2 className="text-xl font-extrabold tracking-tight">
-                The board
-              </h2>
-              {board.rows.length > 0 ? (
-                <p className="tnum text-[11px] font-bold uppercase tracking-[0.16em] text-mute">
-                  {first}&ndash;{last} of {board.total.toLocaleString("en-US")}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="mt-5">
-              <CategoryPills available={categories} />
-            </div>
-
-            {board.rows.length === 0 ? (
-              <div className="card mt-6 px-6 py-16 text-center">
-                <p className="text-xl font-extrabold tracking-tight">
-                  The board is empty
-                </p>
-                <p className="mt-2 text-sm font-semibold text-mute">
-                  The first listing costs $1 and takes the top spot.
-                </p>
-              </div>
-            ) : (
-              <ol className="mt-4">
-                {board.rows.map((entry) => (
-                  <EntryRow
-                    key={entry.id}
-                    entry={entry}
-                    leaderCents={stats.topCents}
-                  />
-                ))}
-              </ol>
-            )}
-
-            <Pagination page={page} pages={board.pages} basePath="/" />
+            <Staircase rows={board.rows} />
           </div>
 
-          <div className="order-3 min-w-0 lg:order-none">
+          <div className="order-3 grid gap-4 lg:order-none lg:pt-6">
+            <p className="label lg:text-right">Sponsored ads</p>
             <SponsorSlot
               tier={SPONSOR_TIERS[2]}
+              index={3}
               initial={sponsors.standard}
-              enabled={paymentsConfigured()}
+              enabled={paying}
             />
             <ActivityStrip initial={activity} />
           </div>
         </div>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+        <div className="mx-auto max-w-3xl">
+          <ClaimPanel
+            priceForFirst={priceForFirst}
+            enabled={paying}
+            leader={leader}
+          />
+        </div>
+
+        <section aria-label="Steps" className="mt-16">
+          <h2 className="font-display text-[30px] font-semibold tracking-[-0.03em]">
+            Steps
+          </h2>
+          <p className="mt-1.5 text-[14px] text-dim">
+            Every step shows its current top bid. Pay more than the one above
+            you and you take its place.
+          </p>
+
+          <div className="mt-6">
+            <CategoryPills available={categories} />
+          </div>
+
+          {board.rows.length === 0 ? (
+            <div className="card mt-6 px-6 py-20 text-center">
+              <p className="font-display text-[20px] font-semibold tracking-[-0.02em]">
+                No steps taken yet
+              </p>
+              <p className="mt-2 text-[14px] text-dim">
+                One dollar claims the top of the flight.
+              </p>
+            </div>
+          ) : (
+            <div className="sheet mt-6">
+              <div className="sheet-head flex items-center gap-3 px-4 py-3 sm:gap-5 sm:px-5">
+                <span className="label hidden w-7 shrink-0 sm:block">Step</span>
+                <span className="label flex-1">Listing</span>
+                <span className="label hidden w-40 shrink-0 lg:block">
+                  Category
+                </span>
+                <span className="label hidden w-24 shrink-0 md:block">
+                  Traffic
+                </span>
+                <span className="label w-16 shrink-0 text-right">Bid</span>
+                <span className="w-[76px] shrink-0 sm:w-[110px]" aria-hidden />
+              </div>
+
+              <ol>
+                {board.rows.map((entry) => (
+                  <EntryRow key={entry.id} entry={entry} />
+                ))}
+              </ol>
+            </div>
+          )}
+
+          <Pagination page={page} pages={board.pages} basePath="/" />
+        </section>
       </div>
     </main>
   );

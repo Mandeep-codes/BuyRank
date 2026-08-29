@@ -12,7 +12,10 @@ export const revalidate = 20;
 
 export async function GET() {
   try {
-    const [items, clicks] = await Promise.all([cachedActivity(), cachedClicks()]);
+    const [items, clicks] = await Promise.all([
+      cachedActivity(),
+      cachedClicks(),
+    ]);
     return NextResponse.json({ items, clicks });
   } catch (error) {
     console.error("[activity]", error);

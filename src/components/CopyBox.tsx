@@ -18,13 +18,13 @@ export function CopyBox({ value }: { value: string }) {
 
   return (
     <div className="relative">
-      <pre className="overflow-x-auto rounded-xl border border-cardline bg-paper px-4 py-3 pr-20 text-left text-[12px] leading-relaxed text-mute">
+      <pre className="overflow-x-auto rounded-xl border border-edge bg-wash px-3.5 py-3 pr-24 text-left font-mono text-[11px] leading-relaxed text-dim">
         {value}
       </pre>
       <button
         type="button"
         onClick={copy}
-        className="pill absolute right-2 top-2 border border-cardline bg-wash px-3 py-1 text-[12px] font-bold transition hover:border-pop"
+        className="btn btn-quiet absolute right-2 top-2 px-3 py-1.5 text-[12px]"
       >
         {copied ? "Copied" : "Copy"}
       </button>

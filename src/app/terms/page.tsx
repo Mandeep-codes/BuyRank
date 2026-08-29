@@ -59,13 +59,14 @@ export default function TermsPage() {
         </p>
         <p>
           If your payment succeeds but your listing has not appeared after a few
-          minutes, contact us at{" "}
+          minutes, contact us at{""}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="text-pop underline underline-offset-4"
+            className="text-accent underline underline-offset-4"
           >
             {CONTACT_EMAIL}
-          </a>{" "}
+          </a>
+          {""}
           with your payment reference and we will resolve it.
         </p>
       </Clause>
@@ -96,7 +97,7 @@ export default function TermsPage() {
           breach of these terms are not refunded.
         </p>
         <p>
-          Outbound links from this site carry a{" "}
+          Outbound links from this site carry a{""}
           <code className="text-ink">nofollow sponsored</code> attribute. These
           are paid placements and are marked as such.
         </p>
@@ -122,19 +123,26 @@ export default function TermsPage() {
           date.
         </p>
         <p>
-          Questions:{" "}
+          Questions:{""}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="text-pop underline underline-offset-4"
+            className="text-accent underline underline-offset-4"
           >
             {CONTACT_EMAIL}
           </a>
-          . See also our{" "}
-          <Link href="/refunds" className="text-pop underline underline-offset-4">
+          . See also our{""}
+          <Link
+            href="/refunds"
+            className="text-accent underline underline-offset-4"
+          >
             Refund and Cancellation Policy
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="text-pop underline underline-offset-4">
+          </Link>
+          {""}
+          and{""}
+          <Link
+            href="/privacy"
+            className="text-accent underline underline-offset-4"
+          >
             Privacy Policy
           </Link>
           .

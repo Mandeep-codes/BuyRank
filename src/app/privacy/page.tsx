@@ -40,8 +40,8 @@ export default function PrivacyPage() {
         <p>
           <span className="text-ink">A visitor count.</span> When you open the
           site your browser generates a random token, stores it locally, and
-          sends it back so we can show how many people are reading right now.
-          It is not derived from your IP address, your device, or anything about
+          sends it back so we can show how many people are reading right now. It
+          is not derived from your IP address, your device, or anything about
           you, it is not shared, and clearing your browser storage discards it
           permanently.
         </p>
@@ -62,14 +62,14 @@ export default function PrivacyPage() {
 
       <Clause heading="Who processes data for us">
         <p>
-          — <span className="text-ink">Dodo Payments</span> — payment processing,
-          invoicing and tax.
+          — <span className="text-ink">Dodo Payments</span> — payment
+          processing, invoicing and tax.
           <br />— <span className="text-ink">Supabase</span> — database hosting.
           <br />— <span className="text-ink">Vercel</span> — website hosting.
         </p>
         <p>
-          When your browser loads a listing icon, the request goes to Google&apos;s
-          public favicon service, which will see your IP address.
+          When your browser loads a listing icon, the request goes to
+          Google&apos;s public favicon service, which will see your IP address.
         </p>
       </Clause>
 
@@ -84,13 +84,14 @@ export default function PrivacyPage() {
       <Clause heading="Your rights">
         <p>
           You can ask us for a copy of the data we hold about you, ask us to
-          correct it, or ask us to delete it. Email{" "}
+          correct it, or ask us to delete it. Email{""}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="text-pop underline underline-offset-4"
+            className="text-accent underline underline-offset-4"
           >
             {CONTACT_EMAIL}
-          </a>{" "}
+          </a>
+          {""}
           and we will respond within 30 days.
         </p>
         <p>
@@ -108,10 +109,10 @@ export default function PrivacyPage() {
 
       <Clause heading="Contact">
         <p>
-          Questions about this policy:{" "}
+          Questions about this policy:{""}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="text-pop underline underline-offset-4"
+            className="text-accent underline underline-offset-4"
           >
             {CONTACT_EMAIL}
           </a>

@@ -70,25 +70,28 @@ export function SetupNotice({ code }: { code: string }) {
 
   return (
     <main className="mx-auto max-w-xl px-5 py-24">
-      <p className="text-[11px] uppercase tracking-[0.24em] text-pop">
+      <p className="text-[11px] tracking-[0.01em] text-accent">
         Setup incomplete
       </p>
-      <h1 className="mt-4 text-4xl font-extrabold font-bold leading-tight tracking-tight text-ink">
+      <h1 className="mt-4 text-[38px] font-bold leading-tight tracking-[-0.02em] text-ink">
         {issue.title}
       </h1>
-      <p className="mt-4 text-[15px] leading-relaxed text-mute">{issue.detail}</p>
-
-      <p className="mt-8 text-[11px] uppercase tracking-[0.16em] text-mute">
-        Run this
+      <p className="mt-4 text-[15px] leading-relaxed text-dim">
+        {issue.detail}
       </p>
-      <pre className="mt-2 overflow-x-auto rounded border border-ink/20 bg-paper px-4 py-3.5 text-sm">
-        <code className="tnum text-pop">{issue.fix}</code>
+
+      <p className="mt-8 text-[11px] tracking-[0.01em] text-dim">Run this</p>
+      <pre className="mt-2 overflow-x-auto rounded bg-wash px-4 py-3.5 text-sm">
+        <code className="tnum text-accent">{issue.fix}</code>
       </pre>
 
-      <p className="mt-10 border-t border-ink/20 pt-6 text-sm text-mute">
+      <p className="mt-10 border-t border-edge pt-6 text-sm text-dim">
         This screen only appears in development, and only for database problems
-        that can be named.{" "}
-        <Link href="/rules" className="text-pop underline underline-offset-4">
+        that can be named.{""}
+        <Link
+          href="/rules"
+          className="text-accent underline underline-offset-4"
+        >
           Rules
         </Link>
       </p>

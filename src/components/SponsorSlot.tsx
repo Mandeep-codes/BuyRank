@@ -18,22 +18,29 @@ function timeLeft(endsAt: string, now: number): string {
 }
 
 /**
- * One placement, two states. Rented: the sponsor's card, clicks counted from
- * this rental's own start, live countdown. Open: the rent form — an offer
- * instead of a placeholder. Placement height on the page tracks price:
- * Premium sits highest, Standard lowest.
+ * A placement card in the rail beside the object: a slot, its price, and the
+ * one action. Rented, it shows whose mark is in it and how long the rental has
+ * left. Open, it is an offer rather than a placeholder.
  */
 export function SponsorSlot({
   tier,
+  index,
   initial,
   enabled,
 }: {
   tier: SponsorTier;
+  /** Which slot this is in the rail, for the heading. */
+  index: number;
   initial: SponsorState;
   enabled: boolean;
 }) {
   const [state, setState] = useState(initial);
   const [now, setNow] = useState(() => Date.now());
+  const [open, setOpen] = useState(false);
+  const [url, setUrl] = useState("");
+  const [days, setDays] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
   // Countdown ticks locally; the state itself refreshes on a slow poll.
   useEffect(() => {
@@ -55,77 +62,6 @@ export function SponsorSlot({
     };
   }, [tier.id]);
 
-  const current = state.current;
-  const rented = current && new Date(current.endsAt).getTime() > now;
-
-  return (
-    <div className="mb-7">
-      {rented ? (
-        <>
-          <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-pop">
-            Sponsored
-          </h2>
-          <a
-            href={`/r/${current.entryId}`}
-            target="_blank"
-            rel="noopener nofollow sponsored"
-            className="card mt-4 block p-4 text-center"
-          >
-            <span className="mx-auto flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-cardline bg-paper shadow-sm">
-              <Favicon
-                src={current.faviconUrl}
-                url={current.url}
-                name={current.displayName}
-                size={26}
-              />
-            </span>
-            <span className="mt-2.5 block truncate text-[15px] font-extrabold tracking-tight">
-              {current.displayName}
-            </span>
-            {current.description ? (
-              <span className="mt-1 block text-[12px] leading-snug text-mute [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
-                {current.description}
-              </span>
-            ) : null}
-            <span className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-              <span className="tnum rounded-lg bg-popsoft px-2 py-0.5 text-[11px] font-bold text-pop">
-                {current.windowClicks.toLocaleString("en-US")}{" "}
-                {current.windowClicks === 1 ? "click" : "clicks"}
-              </span>
-              <span className="tnum rounded-lg bg-popsoft px-2 py-0.5 text-[11px] font-bold text-pop">
-                {timeLeft(current.endsAt, now)}
-              </span>
-            </span>
-          </a>
-          <p className="mt-1.5 text-center text-[11px] text-mute">
-            Clicks counted since this rental started.
-          </p>
-        </>
-      ) : (
-        <RentForm tier={tier} enabled={enabled} nextOpenAt={state.nextOpenAt} />
-      )}
-    </div>
-  );
-}
-
-function RentForm({
-  tier,
-  enabled,
-  nextOpenAt,
-}: {
-  tier: SponsorTier;
-  enabled: boolean;
-  nextOpenAt: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [url, setUrl] = useState("");
-  const [days, setDays] = useState(1);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-
-  const queueMs = new Date(nextOpenAt).getTime() - Date.now();
-  const queuedHours = Math.ceil(queueMs / 3_600_000);
-
   async function rent(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
@@ -141,7 +77,10 @@ function RentForm({
           tier: tier.id,
         }),
       });
-      const data = (await res.json()) as { checkoutUrl?: string; error?: string };
+      const data = (await res.json()) as {
+        checkoutUrl?: string;
+        error?: string;
+      };
       if (!res.ok || !data.checkoutUrl) {
         setError(data.error ?? "Couldn't start checkout.");
         setPending(false);
@@ -154,43 +93,68 @@ function RentForm({
     }
   }
 
-  return (
-    <section
-      aria-label={`Rent the ${tier.label} sponsored spot`}
-      className="rounded-[18px] border border-dashed border-pop/50 bg-wash p-4 text-center"
-    >
-      <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-popsoft text-[17px] font-extrabold text-pop shadow-sm">
-        $
-      </span>
-      <p className="mt-2.5 text-[14px] font-extrabold tracking-tight">
-        Promote your project here
-      </p>
-      <p className="mt-1 text-[12px] leading-snug text-mute">
-        {tier.label} placement,{" "}
-        <span className="font-bold text-ink">
-          {formatUsd(tier.priceCentsPerDay)} / day
-        </span>
-        . Clicks on it are counted and shown.
-      </p>
+  const current = state.current;
+  const rented = current && new Date(current.endsAt).getTime() > now;
 
-      {!open ? (
-        <>
+  return (
+    <section className="card p-4" aria-label={`${tier.label} placement`}>
+      <div className="flex items-center gap-3">
+        <span className="tile h-10 w-10 shrink-0 overflow-hidden">
+          {rented ? (
+            <Favicon
+              src={current.faviconUrl}
+              url={current.url}
+              name={current.displayName}
+              size={22}
+            />
+          ) : (
+            <span className="text-[18px] font-light leading-none">+</span>
+          )}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate font-display text-[16px] font-semibold tracking-[-0.01em]">
+            {rented ? current.displayName : `Slot #${index}`}
+          </p>
+          <p className="mt-0.5 truncate text-[12px] text-dim">
+            {rented ? timeLeft(current.endsAt, now) : tier.label}
+          </p>
+        </div>
+      </div>
+
+      {rented ? (
+        <p className="mt-4 flex items-center justify-between gap-2 text-[13px] text-dim">
+          <span className="tnum">
+            <span className="text-ink">
+              {current.windowClicks.toLocaleString("en-US")}
+            </span>{" "}
+            clicks
+          </span>
+          <a
+            href={`/r/${current.entryId}`}
+            target="_blank"
+            rel="noopener nofollow sponsored"
+            className="btn btn-quiet px-3 py-1.5 text-[13px]"
+          >
+            Visit
+          </a>
+        </p>
+      ) : !open ? (
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <p className="tnum text-[13px] text-dim">
+            <span className="text-ink">{formatUsd(tier.priceCentsPerDay)}</span>{" "}
+            · 1 day
+          </p>
           <button
             type="button"
             onClick={() => setOpen(true)}
             disabled={!enabled}
-            className="pill mt-3 w-full bg-pop px-4 py-2 text-[13px] font-bold text-paper transition hover:bg-[#d9542f] disabled:cursor-not-allowed disabled:bg-popsoft disabled:text-pop/50"
+            className="btn btn-claim px-3.5 py-1.5 text-[13px]"
           >
-            {enabled ? "Rent this spot" : "Opening soon"}
+            {enabled ? "Claim →" : "Soon"}
           </button>
-          {queuedHours > 0 ? (
-            <p className="tnum mt-1.5 text-[11px] text-mute">
-              Next opening in ~{queuedHours}h — new rentals queue behind it.
-            </p>
-          ) : null}
-        </>
+        </div>
       ) : (
-        <form onSubmit={rent} className="mt-3 text-left">
+        <form onSubmit={rent} className="mt-4">
           <input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
@@ -200,7 +164,7 @@ function RentForm({
             autoCapitalize="none"
             spellCheck={false}
             required
-            className="field w-full text-[14px]"
+            className="field py-2 text-[14px]"
           />
           <div className="mt-2 flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
@@ -208,35 +172,37 @@ function RentForm({
                 type="button"
                 aria-label="Fewer days"
                 onClick={() => setDays((d) => Math.max(1, d - 1))}
-                className="step h-8 w-8 text-[15px]"
+                className="step h-7 w-7 text-[14px]"
               >
                 &minus;
               </button>
-              <span className="tnum min-w-12 text-center text-[12px] font-bold">
-                {days} {days === 1 ? "day" : "days"}
+              <span className="tnum min-w-[3.5ch] text-center text-[13px]">
+                {days}d
               </span>
               <button
                 type="button"
                 aria-label="More days"
-                onClick={() => setDays((d) => Math.min(SPONSOR_MAX_DAYS, d + 1))}
-                className="step h-8 w-8 text-[15px]"
+                onClick={() =>
+                  setDays((d) => Math.min(SPONSOR_MAX_DAYS, d + 1))
+                }
+                className="step h-7 w-7 text-[14px]"
               >
                 +
               </button>
             </div>
-            <span className="tnum text-[14px] font-extrabold text-pop">
+            <span className="denom text-[16px] font-semibold">
               {formatUsd(days * tier.priceCentsPerDay)}
             </span>
           </div>
           <button
             type="submit"
             disabled={pending}
-            className="pill mt-2.5 w-full bg-pop px-4 py-2 text-[13px] font-bold text-paper transition hover:bg-[#d9542f] disabled:cursor-not-allowed disabled:bg-popsoft disabled:text-pop/50"
+            className="btn btn-ink mt-2.5 w-full py-2 text-[13px]"
           >
-            {pending ? "Starting checkout…" : "Continue to payment"}
+            {pending ? "Opening…" : "Continue to payment"}
           </button>
           {error ? (
-            <p className="mt-1.5 text-[11px] font-semibold text-pop">{error}</p>
+            <p className="mt-2 text-[12px] text-accent">{error}</p>
           ) : null}
         </form>
       )}

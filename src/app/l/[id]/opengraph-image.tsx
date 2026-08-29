@@ -19,64 +19,66 @@ export default async function OgImage({
   const entry = await getEntryWithRank(id).catch(() => null);
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: "#FFF4DC",
-          padding: "72px",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 30, fontWeight: 700, color: "#14110F" }}>
-            {SITE_NAME}
-          </span>
-          <span style={{ fontSize: 26, color: "#7B7269" }}>
-            rank is bought, not earned
-          </span>
-        </div>
-
-        {entry ? (
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span
-              style={{
-                fontSize: 200,
-                fontWeight: 800,
-                color: "#FF5A36",
-                lineHeight: 1,
-              }}
-            >
-              #{entry.rank}
-            </span>
-            <span
-              style={{
-                fontSize: 58,
-                fontWeight: 800,
-                color: "#14110F",
-                marginTop: 18,
-              }}
-            >
-              {entry.displayName}
-            </span>
-          </div>
-        ) : (
-          <span style={{ fontSize: 64, fontWeight: 800, color: "#14110F" }}>
-            This spot is open.
-          </span>
-        )}
-
-        <span style={{ fontSize: 30, color: "#7B7269" }}>
-          {entry
-            ? `Holding at ${formatUsd(entry.bidCents)} — take it for ${formatUsd(priceToBeat(entry.bidCents))}`
-            : "New listings start at $1"}
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        background: "rgb(255, 255, 255)",
+        padding: "72px",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <span
+          style={{ fontSize: 30, fontWeight: 700, color: "rgb(17, 17, 17)" }}
+        >
+          {SITE_NAME}
+        </span>
+        <span style={{ fontSize: 26, color: "rgb(140, 140, 140)" }}>
+          rank is bought, not earned
         </span>
       </div>
-    ),
+
+      {entry ? (
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span
+            style={{
+              fontSize: 200,
+              fontWeight: 800,
+              color: "rgb(17, 17, 17)",
+              lineHeight: 1,
+            }}
+          >
+            #{entry.rank}
+          </span>
+          <span
+            style={{
+              fontSize: 58,
+              fontWeight: 800,
+              color: "rgb(17, 17, 17)",
+              marginTop: 18,
+            }}
+          >
+            {entry.displayName}
+          </span>
+        </div>
+      ) : (
+        <span
+          style={{ fontSize: 64, fontWeight: 800, color: "rgb(17, 17, 17)" }}
+        >
+          This spot is open.
+        </span>
+      )}
+
+      <span style={{ fontSize: 30, color: "rgb(140, 140, 140)" }}>
+        {entry
+          ? `Holding at ${formatUsd(entry.bidCents)} — take it for ${formatUsd(priceToBeat(entry.bidCents))}`
+          : "New listings start at $1"}
+      </span>
+    </div>,
     size,
   );
 }

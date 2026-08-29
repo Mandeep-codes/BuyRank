@@ -13,7 +13,15 @@ export async function GET() {
   } catch (error) {
     console.error("[stats]", error);
     return NextResponse.json(
-      { totalCents: 0, listings: 0, bidCount: 0, topCents: 0, totalClicks: 0, onlineNow: 0, totalVisitors: 0 },
+      {
+        totalCents: 0,
+        listings: 0,
+        bidCount: 0,
+        topCents: 0,
+        totalClicks: 0,
+        onlineNow: 0,
+        totalVisitors: 0,
+      },
       { status: 200 },
     );
   }

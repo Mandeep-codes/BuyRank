@@ -1,23 +1,43 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Inter, Outfit } from "next/font/google";
 import Link from "next/link";
-import { CONTACT_EMAIL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/config";
+import {
+  CONTACT_EMAIL,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/config";
 import "./globals.css";
 
-// One family throughout, the way the reference does it — weight carries the
-// hierarchy instead of a second face.
-const sans = Plus_Jakarta_Sans({
+/**
+ * Three roles. Outfit's geometric numerals carry the headings and every price,
+ * Inter does the reading, and Plex Mono is reserved for the small caps column
+ * heads and the index numbers down the left of the table.
+ */
+const display = Outfit({
   subsets: ["latin"],
-  variable: "--font-body",
-  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-display",
+  weight: ["500", "600", "700"],
+  display: "swap",
+});
+
+const sans = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
   display: "swap",
 });
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  themeColor: "#ffffff",
 };
 
 export const metadata: Metadata = {
@@ -49,42 +69,49 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable}`}
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
     >
       <body className="min-h-screen antialiased">
         {children}
-        <footer className="mt-24 border-t border-rule">
-          <div className="mx-auto max-w-5xl px-4 py-9 sm:px-5">
-            <p className="text-[15px] font-semibold">
-              Every rank on this board was paid for. Nobody voted.
-            </p>
-            <nav className="mt-3.5 flex flex-wrap gap-x-6 gap-y-2 text-[15px] text-mute">
-              <Link href="/about" className="underline-offset-4 hover:underline">
-                About
-              </Link>
-              <Link href="/rules" className="underline-offset-4 hover:underline">
-                Rules
-              </Link>
-              <Link href="/terms" className="underline-offset-4 hover:underline">
-                Terms of Service
-              </Link>
-              <Link href="/privacy" className="underline-offset-4 hover:underline">
-                Privacy Policy
-              </Link>
-              <Link href="/refunds" className="underline-offset-4 hover:underline">
-                Refunds
-              </Link>
+
+        <footer className="mt-24 border-t border-edge">
+          <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:px-8 md:grid-cols-[minmax(0,1fr)_auto]">
+            <div>
+              <p className="max-w-lg font-display text-[20px] font-semibold leading-snug tracking-[-0.02em]">
+                Every step on this staircase was paid for.{" "}
+                <span className="text-dim">Nobody voted.</span>
+              </p>
+              <p className="mt-3 max-w-md text-[13px] leading-relaxed text-dim">
+                Listings start at $1. One payment, no subscription, and no
+                refund when the next person outbids you. Payments handled by
+                Dodo Payments.
+              </p>
+            </div>
+
+            <nav className="grid gap-2.5 md:justify-items-end">
+              <p className="label">Index</p>
+              {[
+                { href: "/about", label: "About" },
+                { href: "/rules", label: "Rules" },
+                { href: "/terms", label: "Terms" },
+                { href: "/privacy", label: "Privacy" },
+                { href: "/refunds", label: "Refunds" },
+              ].map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="text-[13px] text-dim transition hover:text-ink"
+                >
+                  {l.label}
+                </Link>
+              ))}
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
-                className="underline-offset-4 hover:underline"
+                className="text-[13px] text-dim transition hover:text-ink"
               >
                 Contact
               </a>
             </nav>
-            <p className="mt-4 text-sm text-mute">
-              Listings start at $1. One-time payment, no subscription. Payments
-              handled by Dodo Payments.
-            </p>
           </div>
         </footer>
       </body>

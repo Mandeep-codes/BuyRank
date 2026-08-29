@@ -32,7 +32,7 @@ export function Favicon({
   if (step >= chain.length) {
     return (
       <span
-        className={`flex items-center justify-center font-extrabold text-mute ${className ?? ""}`}
+        className={`flex items-center justify-center font-bold text-dim ${className ?? ""}`}
         style={{ fontSize: Math.max(12, Math.floor(size * 0.42)) }}
         aria-hidden
       >

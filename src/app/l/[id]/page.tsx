@@ -26,9 +26,10 @@ export async function generateMetadata({
 }
 
 /**
- * The listing's own page: what a bidder links when they want to show off the
- * rank they bought, and what the OG card renders from. Also carries the
- * embeddable badge — a live backlink from their site to this one.
+ * A listing's own page, laid out like the certificate for a position: the
+ * amount paid, set large, and the three figures that follow from it. This is
+ * what a bidder links when they want to show the rank they bought, and what
+ * the OG card renders from.
  */
 export default async function ListingPage({
   params,
@@ -47,80 +48,106 @@ export default async function ListingPage({
   const badgeSnippet = `<a href="${pageUrl}"><img src="${SITE_URL}/api/badge/${entry.id}" alt="#${entry.rank} on ${SITE_NAME}" height="44"></a>`;
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10 text-center">
-      <Link href="/" className="text-[15px] font-bold text-mute transition hover:text-ink">
+    <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+      <Link
+        href="/"
+        className="text-[11px] font-semibold tracking-[0.01em] text-dim transition hover:text-ink"
+      >
         &larr; {SITE_NAME}
       </Link>
 
-      <p className="rank mx-auto mt-8 h-16 w-20 text-2xl">#{entry.rank}</p>
+      <p className="label mt-12">Position {entry.rank} · standing bid</p>
+      <p
+        className="denom mt-4 text-[clamp(3.4rem,13vw,6.5rem)]"
+        style={{ "--lum": 1 } as React.CSSProperties}
+      >
+        {formatUsd(entry.bidCents)}
+      </p>
 
-      <span className="mx-auto mt-5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-cardline bg-paper shadow-sm">
+      <div className="mt-8 flex items-start gap-3 pt-6">
         <Favicon
           src={entry.faviconUrl}
           url={entry.url}
           name={entry.displayName}
-          size={34}
+          size={40}
+          className="h-11 w-11 shrink-0 rounded-[10px] bg-paper object-contain p-1.5"
         />
-      </span>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[24px] font-bold leading-tight tracking-[-0.02em]">
+            {entry.displayName}
+          </h1>
+          {entry.title ? (
+            <p className="mt-0.5 text-[15px] text-dim">{entry.title}</p>
+          ) : null}
+        </div>
+      </div>
 
-      <h1 className="mt-4 text-3xl font-extrabold tracking-tight">
-        {entry.displayName}
-      </h1>
-      {entry.title ? (
-        <p className="mt-1 text-[16px] font-semibold text-mute">{entry.title}</p>
-      ) : null}
       {entry.description ? (
-        <p className="mx-auto mt-3 max-w-lg text-[15px] leading-relaxed text-mute">
+        <p className="mt-5 text-[14px] leading-relaxed text-dim">
           {entry.description}
         </p>
       ) : null}
 
-      <p className="tnum mt-5 text-[15px] font-semibold text-mute">
-        Holding #{entry.rank} at{" "}
-        <span className="text-ink">{formatUsd(entry.bidCents)}</span> &middot;{" "}
-        {formatCompact(entry.clicks)} clicks delivered
-      </p>
+      <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-edge bg-wash bg-edge sm:grid-cols-3">
+        <Stat label="Position" value={`#${entry.rank}`} />
+        <Stat label="Costs to pass" value={formatUsd(takeFor)} />
+        <Stat
+          label="Clicks delivered"
+          value={formatCompact(entry.clicks)}
+          className="col-span-2 sm:col-span-1"
+        />
+      </dl>
 
-      <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+      <div className="mt-7 flex flex-wrap items-center gap-2">
+        <Link href={`/?amount=${takeFor / 100}#bid`} className="btn btn-ink">
+          Take this spot for {formatUsd(takeFor)}
+        </Link>
         <a
           href={`/r/${entry.id}`}
           target="_blank"
           rel="noopener nofollow sponsored"
-          className="pill border border-cardline bg-paper px-6 py-3 text-[15px] font-bold transition hover:border-pop"
+          className="btn btn-quiet"
         >
           Visit {entry.displayName}
         </a>
-        <Link
-          href={`/?amount=${takeFor / 100}#bid`}
-          className="pill bg-pop px-6 py-3 text-[15px] font-bold text-paper transition hover:bg-[#d9542f]"
-        >
-          Take this spot for {formatUsd(takeFor)}
-        </Link>
       </div>
 
-      <div className="mt-10 border-t border-rule pt-8">
-        <p className="text-[13px] font-bold uppercase tracking-[0.1em] text-mute">
-          Share this rank
-        </p>
+      <section className="mt-14 pt-8">
+        <p className="label">Share this position</p>
         <div className="mt-4">
           <ShareRow
             url={pageUrl}
             text={`${entry.displayName} is #${entry.rank} on ${SITE_NAME} — outbid it if you dare.`}
           />
         </div>
-      </div>
+      </section>
 
-      <div className="mt-9 text-left">
-        <p className="text-center text-[13px] font-bold uppercase tracking-[0.1em] text-mute">
-          Embed the live badge
-        </p>
-        <p className="mt-2 text-center text-[13px] text-mute">
-          The rank in the badge updates as the board moves.
+      <section className="mt-10 pt-8">
+        <p className="label">Embed the live badge</p>
+        <p className="mt-2 text-[13px] leading-relaxed text-dim">
+          The rank inside the badge updates as the board moves.
         </p>
         <div className="mt-4">
           <CopyBox value={badgeSnippet} />
         </div>
-      </div>
+      </section>
     </main>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  className?: string;
+}) {
+  return (
+    <div className={`bg-wash px-4 py-4 ${className}`}>
+      <dt className="label">{label}</dt>
+      <dd className="denom mt-2 text-[24px] text-accent">{value}</dd>
+    </div>
   );
 }

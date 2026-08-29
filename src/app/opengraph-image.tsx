@@ -21,75 +21,77 @@ export default async function OgImage() {
   ]);
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: "#FFF4DC",
-          padding: "72px",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 30, fontWeight: 700, color: "#14110F" }}>
-            {SITE_NAME}
-          </span>
-          <span style={{ fontSize: 26, color: "#7B7269" }}>
-            rank is bought, not earned
-          </span>
-        </div>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        background: "rgb(255, 255, 255)",
+        padding: "72px",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <span
+          style={{ fontSize: 30, fontWeight: 700, color: "rgb(17, 17, 17)" }}
+        >
+          {SITE_NAME}
+        </span>
+        <span style={{ fontSize: 26, color: "rgb(140, 140, 140)" }}>
+          rank is bought, not earned
+        </span>
+      </div>
 
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <span
-            style={{
-              fontSize: 26,
-              letterSpacing: 4,
-              textTransform: "uppercase",
-              color: "#7B7269",
-            }}
-          >
-            #1 currently costs
-          </span>
-          <span
-            style={{
-              fontSize: 190,
-              fontWeight: 800,
-              color: "#FF5A26",
-              lineHeight: 1,
-              marginTop: 12,
-            }}
-          >
-            {formatUsd(priceForFirst)}
-          </span>
-        </div>
-
-        <div
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <span
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 20,
-            borderTop: "3px solid #14110F",
-            paddingTop: 28,
-            fontSize: 30,
-            color: "#7B7269",
+            fontSize: 26,
+            letterSpacing: 4,
+            textTransform: "none",
+            color: "rgb(140, 140, 140)",
           }}
         >
-          {top ? (
-            <>
-              <span style={{ color: "#FF5A26", fontWeight: 700 }}>#1</span>
-              <span style={{ color: "#14110F" }}>{top.displayName}</span>
-              <span>holds it at {formatUsd(top.bidCents)}</span>
-            </>
-          ) : (
-            <span>The board is empty. $1 takes the top spot.</span>
-          )}
-        </div>
+          #1 currently costs
+        </span>
+        <span
+          style={{
+            fontSize: 190,
+            fontWeight: 800,
+            color: "rgb(17, 17, 17)",
+            lineHeight: 1,
+            marginTop: 12,
+          }}
+        >
+          {formatUsd(priceForFirst)}
+        </span>
       </div>
-    ),
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 20,
+          borderTop: "3px solid rgb(17, 17, 17)",
+          paddingTop: 28,
+          fontSize: 30,
+          color: "rgb(140, 140, 140)",
+        }}
+      >
+        {top ? (
+          <>
+            <span style={{ color: "rgb(17, 17, 17)", fontWeight: 700 }}>
+              #1
+            </span>
+            <span style={{ color: "rgb(17, 17, 17)" }}>{top.displayName}</span>
+            <span>holds it at {formatUsd(top.bidCents)}</span>
+          </>
+        ) : (
+          <span>The board is empty. $1 takes the top spot.</span>
+        )}
+      </div>
+    </div>,
     size,
   );
 }

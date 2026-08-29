@@ -49,7 +49,12 @@ export async function POST(req: Request) {
       db
         .select({ n: count() })
         .from(visitors)
-        .where(gt(visitors.lastSeen, sql`now() - interval '${sql.raw(ONLINE_WINDOW)}'`)),
+        .where(
+          gt(
+            visitors.lastSeen,
+            sql`now() - interval '${sql.raw(ONLINE_WINDOW)}'`,
+          ),
+        ),
       db.select({ n: count() }).from(visitors),
     ]);
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { timeAgo } from "@/lib/format";
 
 type ClickItem = {
   id: string;
@@ -11,10 +10,10 @@ type ClickItem = {
 };
 
 /**
- * A single rotating line of real outbound clicks: "acme.com got a click just
- * now". The server only returns events from the last 24 hours, so when the
- * board is quiet this renders nothing at all — a visible-but-stale ticker
- * would read worse than its absence.
+ * Real outbound clicks, one at a time, directly under the masthead — proof
+ * that the money buys something. The server only returns events from the last
+ * 24 hours, so a quiet board renders no band at all; a stale ticker reads
+ * worse than none.
  */
 export function ClickTicker({ initial }: { initial: ClickItem[] }) {
   const [items, setItems] = useState(initial);
@@ -47,17 +46,19 @@ export function ClickTicker({ initial }: { initial: ClickItem[] }) {
   if (!item) return null;
 
   return (
-    <p className="mt-2.5 px-4 text-center" aria-live="off">
-      <span
-        key={item.id}
-        className="ticker-item inline-flex max-w-full items-center gap-2 text-[13px] text-mute"
-      >
-        <span className="blink h-1.5 w-1.5 shrink-0 rounded-full bg-pop" aria-hidden />
-        <span className="truncate">
-          <span className="font-bold text-ink">{item.displayName}</span> got a
-          click {timeAgo(item.createdAt)}
-        </span>
-      </span>
-    </p>
+    <div className="relative z-30 border-b border-edge bg-wash" aria-live="off">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2 sm:px-6">
+        <span
+          className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
+          aria-hidden
+        />
+        <p
+          key={item.id}
+          className="min-w-0 truncate text-[13px] font-medium text-dim"
+        >
+          <span className="text-ink">{item.displayName}</span> got a click
+        </p>
+      </div>
+    </div>
   );
 }

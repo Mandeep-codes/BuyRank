@@ -10,8 +10,8 @@ export function CategoryPills({
   available,
 }: {
   active?: string;
-  /** Slugs with at least one listing. Empty pills make a young board look
-   *  emptier than it is; when omitted, every category renders (old behavior). */
+  /** Slugs with at least one listing. Empty filters make a young board look
+   *  emptier than it is; when omitted, every category renders. */
   available?: string[];
 }) {
   const visible = available
@@ -21,11 +21,11 @@ export function CategoryPills({
   return (
     <nav
       aria-label="Categories"
-      className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+      className="-mx-4 flex snap-x gap-1.5 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
     >
-      <Pill href="/" label="All" active={!active} />
+      <Chip href="/" label="All" active={!active} />
       {visible.map((c) => (
-        <Pill
+        <Chip
           key={c.slug}
           href={`/category/${c.slug}`}
           label={c.label}
@@ -36,7 +36,7 @@ export function CategoryPills({
   );
 }
 
-function Pill({
+function Chip({
   href,
   label,
   active,
@@ -48,11 +48,7 @@ function Pill({
   return (
     <Link
       href={href}
-      className={`shrink-0 snap-start whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold transition ${
-        active
-          ? "bg-pop text-paper"
-          : "bg-wash text-mute hover:bg-popsoft hover:text-pop"
-      }`}
+      className={`chip shrink-0 snap-start ${active ? "chip-on" : ""}`}
     >
       {label}
     </Link>

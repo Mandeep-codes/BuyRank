@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MIN_ONLINE_TO_SHOW } from "@/lib/config";
 
 const STORAGE_KEY = "buyrank_visitor";
 const HEARTBEAT_MS = 60_000;
@@ -24,7 +23,7 @@ function visitorToken(): string {
   } catch {
     // localStorage blocked (private browsing). sessionStorage usually still
     // works, and without it every page load minted a new token — which
-    // quietly inflated "visitors since launch". One token per tab is honest.
+    // quietly inflated"visitors since launch". One token per tab is honest.
     try {
       const existing = sessionStorage.getItem(STORAGE_KEY);
       if (valid(existing)) return existing;
@@ -45,7 +44,9 @@ export function LiveCount({
   initialOnline: number;
   initialTotal: number;
 }) {
-  const [counts, setCounts] = useState<{ online: number; total: number }>({
+  // State is kept (not read) so the heartbeat response still has somewhere to
+  // land if the display block is restored.
+  const [, setCounts] = useState<{ online: number; total: number }>({
     online: initialOnline,
     total: initialTotal,
   });
@@ -84,23 +85,16 @@ export function LiveCount({
     };
   }, []);
 
-  // "2 online" argues against the site; the count appears once it reads as
-  // strength. Nothing is padded — the segment just waits its turn.
-  const showOnline = counts.online >= MIN_ONLINE_TO_SHOW;
-
-  // Optional segments own their trailing separator, so nothing can leave an
-  // orphan dot behind when it hides.
-  if (!showOnline) return null;
-
-  return (
-    <>
-      <span className="flex items-center gap-1.5">
-        <span className="blink h-1.5 w-1.5 rounded-full bg-mint" aria-hidden />
-        <span className="tnum font-semibold text-mint">
-          {counts.online.toLocaleString("en-US")} online
-        </span>
-      </span>
-      <span aria-hidden>&middot;</span>
-    </>
-  );
+  // Renders nothing on purpose: the online count is hidden while the numbers
+  // are small. The heartbeat above still runs, so presence keeps accruing and
+  // the count is available on /api/stats — restore the block below to show it.
+  //
+  //   <span className="flex items-center gap-1.5">
+  //     <span className="blink h-1.5 w-1.5 rounded-full bg-mint" aria-hidden />
+  //     <span className="tnum font-semibold text-mint">
+  //       {counts.online.toLocaleString("en-US")} online
+  //     </span>
+  //   </span>
+  //   <span aria-hidden>&middot;</span>
+  return null;
 }

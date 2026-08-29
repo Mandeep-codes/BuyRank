@@ -51,20 +51,21 @@ export default function RefundsPage() {
           <br />— You were outbid and your rank fell.
           <br />— The listing did not bring you the traffic you expected. We do
           not guarantee traffic.
-          <br />— Your listing was removed for breaching our{" "}
+          <br />— Your listing was removed for breaching our{""}
           <span className="text-ink">Terms of Service</span>.
         </p>
       </Clause>
 
       <Clause heading="How to request a refund">
         <p>
-          Email{" "}
+          Email{""}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="text-pop underline underline-offset-4"
+            className="text-accent underline underline-offset-4"
           >
             {CONTACT_EMAIL}
-          </a>{" "}
+          </a>
+          {""}
           from the address you used at checkout, within 14 days of the payment,
           including your payment reference and the link you listed.
         </p>

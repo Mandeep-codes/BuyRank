@@ -64,11 +64,18 @@ export function SuccessRank({
 
   if (result?.found && result.rank && result.id) {
     return (
-      <div className="mt-8">
-        <p className="rank mx-auto h-16 w-20 text-2xl">#{result.rank}</p>
-        <p className="mt-4 text-[16px] font-semibold">
-          <span className="text-ink">{result.displayName}</span>{" "}
-          <span className="text-mute">is live at #{result.rank}.</span>
+      <div className="mt-8 pt-8">
+        <p className="label">Position taken</p>
+        <p
+          className="denom mt-3 text-[clamp(3.4rem,13vw,6rem)]"
+          style={{ "--lum": 1 } as React.CSSProperties}
+        >
+          #{result.rank}
+        </p>
+        <p className="mt-3 text-[15px]">
+          <span className="font-semibold">{result.displayName}</span>
+          {""}
+          <span className="text-dim">is live at #{result.rank}.</span>
         </p>
         <div className="mt-6">
           <ShareRow
@@ -81,10 +88,13 @@ export function SuccessRank({
   }
 
   return (
-    <p className="mt-6 text-[14px] text-mute" aria-live="polite">
+    <p
+      className="mt-6 text-[11px] font-semibold tracking-[0.01em] text-dim"
+      aria-live="polite"
+    >
       {gaveUp
-        ? "Payments can take a minute to clear — your listing appears the moment it does."
-        : "Confirming your spot on the board…"}
+        ? "Payments can take a minute to clear. Your listing appears the moment it does."
+        : "Confirming your spot…"}
     </p>
   );
 }

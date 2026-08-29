@@ -4,52 +4,54 @@ import { formatUsd } from "@/lib/format";
 import type { BoardStats } from "@/lib/queries";
 import { LiveCount } from "./LiveCount";
 
+/**
+ * A thin white bar with one hairline under it. The only figure it carries is
+ * the total that has changed hands, held back until that number argues for the
+ * board rather than against it.
+ */
 export function Masthead({ stats }: { stats: BoardStats }) {
   return (
-    <header>
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="rank h-8 w-8 text-[15px]">
+    <header className="sticky top-0 z-40 border-b border-edge bg-paper/90 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-3.5 sm:gap-6 sm:px-8">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+          <span className="grid h-7 w-7 place-items-center rounded-lg bg-ink font-display text-[14px] font-semibold leading-none text-paper">
             {SITE_NAME.charAt(0).toUpperCase()}
           </span>
-          <span className="text-[19px] font-extrabold tracking-tight">
+          <span className="font-display text-[17px] font-semibold leading-none tracking-[-0.02em]">
             {SITE_NAME}
           </span>
         </Link>
 
-        <nav className="flex shrink-0 items-center gap-4 text-[14px] font-medium text-mute sm:gap-7 sm:text-[15px]">
-          <Link href="/rules" className="transition hover:text-ink">
-            Rules
-          </Link>
-          <Link href="/about" className="transition hover:text-ink">
-            About
-          </Link>
-        </nav>
+        <span className="hidden text-[13px] text-dim lg:block">
+          Rank is bought, not earned
+        </span>
+
+        <div className="ml-auto flex items-center gap-5 sm:gap-7">
+          {stats.totalCents >= MIN_PAID_STAT_CENTS ? (
+            <p className="hidden items-baseline gap-1.5 text-[13px] sm:flex">
+              <span className="denom font-semibold">
+                {formatUsd(stats.totalCents)}
+              </span>
+              <span className="text-dim">raised</span>
+            </p>
+          ) : null}
+
+          <nav className="flex items-center gap-5 text-[13px] text-dim">
+            <Link href="/rules" className="transition hover:text-ink">
+              Rules
+            </Link>
+            <Link href="/about" className="transition hover:text-ink">
+              About
+            </Link>
+          </nav>
+        </div>
       </div>
 
-      {/* One quiet pill, centred — the reference puts its live numbers here. */}
-      <div className="px-4">
-        <p className="mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full bg-wash px-4 py-2 text-center text-[13px] font-medium text-mute sm:text-sm">
-          <LiveCount initialOnline={stats.onlineNow} initialTotal={stats.totalVisitors} />
-          {stats.totalCents >= MIN_PAID_STAT_CENTS ? (
-            <>
-              <span>
-                <span className="tnum font-semibold text-ink">
-                  {formatUsd(stats.totalCents)}
-                </span>{" "}
-                paid so far
-              </span>
-              <span aria-hidden>&middot;</span>
-            </>
-          ) : null}
-          <span>
-            <span className="tnum font-semibold text-ink">
-              {stats.listings}
-            </span>{" "}
-            listed
-          </span>
-        </p>
-      </div>
+      {/* Presence keeps accruing; the component itself renders nothing. */}
+      <LiveCount
+        initialOnline={stats.onlineNow}
+        initialTotal={stats.totalVisitors}
+      />
     </header>
   );
 }

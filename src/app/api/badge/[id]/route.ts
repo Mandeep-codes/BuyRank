@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 function svg(label: string, active: boolean): string {
   const width = 36 + label.length * 8.4;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(width)}" height="44" role="img" aria-label="${label}">
-  <rect width="100%" height="100%" rx="12" fill="${active ? "#FF5A36" : "#B7ADA8"}"/>
-  <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="-apple-system,'Segoe UI',Roboto,sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">${label}</text>
+  <rect width="100%" height="100%" rx="12" fill="${active ? "rgb(17, 17, 17)" : "rgb(140, 140, 140)"}"/>
+  <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="-apple-system,'Segoe UI',Roboto,sans-serif" font-size="15" font-weight="700" fill="rgb(255, 255, 255)">${label}</text>
 </svg>`;
 }
 

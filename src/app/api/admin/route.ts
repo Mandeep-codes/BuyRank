@@ -42,7 +42,11 @@ export async function POST(req: Request) {
   }
 
   const status =
-    body.action === "hide" ? "hidden" : body.action === "restore" ? "active" : null;
+    body.action === "hide"
+      ? "hidden"
+      : body.action === "restore"
+        ? "active"
+        : null;
 
   if (!status) {
     return NextResponse.json(

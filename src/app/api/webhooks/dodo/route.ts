@@ -4,7 +4,12 @@ import { NextResponse } from "next/server";
 import { Webhook } from "standardwebhooks";
 import { CATEGORY_SLUGS, MIN_BID_CENTS, sponsorTier } from "@/lib/config";
 import type { DodoWebhookPayload } from "@/lib/dodo";
-import { reverseBid, reverseSponsor, settleBid, settleSponsor } from "@/lib/queries";
+import {
+  reverseBid,
+  reverseSponsor,
+  settleBid,
+  settleSponsor,
+} from "@/lib/queries";
 import { scrapeMetadata } from "@/lib/metadata";
 
 export const runtime = "nodejs";

@@ -1,117 +1,101 @@
 import Link from "next/link";
 import { Favicon } from "@/components/Favicon";
-import { formatCompact, formatDuration, formatUsd, timeAgo } from "@/lib/format";
+import { categoryLabel } from "@/lib/config";
+import { formatCompact, formatUsd } from "@/lib/format";
 import { priceToBeat, type RankedEntry } from "@/lib/queries";
 
 /**
- * Board row. Rank badge, icon, title, description, then a meta line — with the
- * price held top-right at every width so the ranking stays scannable on a
- * phone. Narrow-first: nothing here can push the row wider than its container.
+ * A row of the register. The table is the plain, complete account of the board
+ * behind the object at the top of the page: index, listing, category, clicks
+ * delivered, standing bid, and the one button that takes it off them.
+ *
+ * There is deliberately no date on a row. When something was listed has no
+ * bearing on where it sits; only the number does.
  */
-export function EntryRow({ entry }: { entry: RankedEntry; leaderCents: number }) {
-  // How long the leader has held the top — measured from their last winning
-  // bid. Shown only past the first hour so a fresh takeover isn't "on top 2m".
-  const reign =
-    Number(entry.rank) === 1
-      ? formatDuration(Date.now() - new Date(entry.updatedAt).getTime(), 1)
-      : null;
-
-  const isTop = Number(entry.rank) === 1;
+export function EntryRow({ entry }: { entry: RankedEntry }) {
+  const rank = Number(entry.rank);
+  const takeFor = priceToBeat(entry.bidCents);
 
   return (
-    <li
-      id={`entry-${entry.id}`}
-      className={`card mb-3 p-4 sm:p-5 ${isTop ? "border-pop/50 bg-popsoft/60" : ""}`}
-    >
-      <div className="flex items-start gap-3 sm:gap-4">
+    <li className="sheet-row">
+      <div className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-5">
         <span
-          className="rank h-8 w-9 shrink-0 text-[13px] sm:h-9 sm:w-11 sm:text-sm"
+          className="tnum hidden w-7 shrink-0 font-mono text-[13px] text-dim sm:block"
           aria-hidden
         >
-          #{entry.rank}
+          {String(rank).padStart(2, "0")}
         </span>
 
-        <Favicon
-          src={entry.faviconUrl}
-          url={entry.url}
-          name={entry.displayName}
-          size={44}
-          className="flex h-10 w-10 shrink-0 rounded-xl border border-cardline bg-paper object-contain p-1.5 sm:h-12 sm:w-12"
-        />
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <Favicon
+            src={entry.faviconUrl}
+            url={entry.url}
+            name={entry.displayName}
+            size={32}
+            className="tile h-8 w-8 shrink-0 object-contain p-1"
+          />
+          <div className="min-w-0">
             <a
               href={`/r/${entry.id}`}
               target="_blank"
               rel="noopener nofollow sponsored"
-              className="min-w-0 truncate text-[15px] font-bold tracking-tight hover:text-pop sm:text-[17px]"
+              className="block truncate text-[15px] font-semibold leading-snug tracking-[-0.01em] transition hover:text-accent"
             >
+              {entry.displayName}
               {entry.title ? (
-                <>
-                  {entry.displayName}
-                  <span className="font-medium text-mute"> &middot; </span>
-                  <span className="font-semibold">{entry.title}</span>
-                </>
-              ) : (
-                entry.displayName
-              )}
+                <span className="font-normal text-dim"> · {entry.title}</span>
+              ) : null}
             </a>
-
-            <span className="tnum shrink-0 text-[17px] font-bold text-pop sm:text-xl">
-              {formatUsd(entry.bidCents)}
-            </span>
-          </div>
-
-          {entry.description ? (
-            <p className="mt-1.5 line-clamp-2 text-[14px] leading-snug text-mute">
-              {entry.description}
-            </p>
-          ) : null}
-
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-mute sm:text-[13px]">
-            <time dateTime={new Date(entry.updatedAt).toISOString()}>
-              {timeAgo(entry.updatedAt)}
-            </time>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-pop" aria-hidden />
-              <span className="tnum">{formatCompact(entry.clicks)} clicks</span>
-            </span>
-            {isTop && reign ? (
-              <span className="tnum font-semibold text-pop">
-                on top {reign}
-              </span>
+            {entry.description ? (
+              <p className="mt-0.5 truncate text-[13px] leading-relaxed text-dim">
+                {entry.description}
+              </p>
             ) : null}
-            <span className="ml-auto flex items-center gap-3">
-              <Link
-                href={`/l/${entry.id}`}
-                aria-label={`Share page for ${entry.displayName}`}
-                className="text-mute transition hover:text-ink"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                  <path d="M7 17L17 7" />
-                  <path d="M9 7h8v8" />
-                </svg>
-              </Link>
-              <Link
-                href={`/?amount=${priceToBeat(entry.bidCents) / 100}#bid`}
-                className="tnum font-semibold text-pop hover:underline"
-              >
-                take for {formatUsd(priceToBeat(entry.bidCents))}
-              </Link>
-            </span>
           </div>
         </div>
+
+        <span className="label hidden w-40 shrink-0 truncate lg:block">
+          {categoryLabel(entry.category)}
+        </span>
+
+        <span className="hidden w-24 shrink-0 text-[13px] text-dim md:block">
+          <span className="tnum text-ink">{formatCompact(entry.clicks)}</span>{" "}
+          clicks
+        </span>
+
+        <span className="denom w-16 shrink-0 text-right text-[17px] font-semibold">
+          {formatUsd(entry.bidCents)}
+        </span>
+
+        <span className="flex shrink-0 items-center gap-1">
+          <Link
+            href={`/l/${entry.id}`}
+            aria-label={`Share page for ${entry.displayName}`}
+            className="hidden rounded-lg p-2 text-dim transition hover:bg-wash hover:text-ink sm:block"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M7 17L17 7" />
+              <path d="M9 7h8v8" />
+            </svg>
+          </Link>
+
+          <Link
+            href={`/?amount=${takeFor / 100}#bid`}
+            className="btn btn-ink px-4 py-2 text-[13px]"
+          >
+            Outbid
+          </Link>
+        </span>
       </div>
     </li>
   );

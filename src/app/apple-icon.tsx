@@ -8,24 +8,22 @@ export const contentType = "image/png";
 /** Home-screen icon for iOS. Squircle, not a circle — iOS masks it itself. */
 export default function AppleIcon() {
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#FF5A36",
-          color: "#FFFFFF",
-          fontSize: 118,
-          fontWeight: 800,
-          lineHeight: 1,
-        }}
-      >
-        {SITE_NAME.charAt(0).toUpperCase()}
-      </div>
-    ),
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgb(17, 17, 17)",
+        color: "rgb(255, 255, 255)",
+        fontSize: 118,
+        fontWeight: 800,
+        lineHeight: 1,
+      }}
+    >
+      {SITE_NAME.charAt(0).toUpperCase()}
+    </div>,
     size,
   );
 }

@@ -19,18 +19,25 @@ export function ShareRow({ url, text }: { url: string; text: string }) {
     }
   }
 
-  const pill =
-    "pill px-4 py-2 text-[13px] font-bold transition border border-cardline bg-paper hover:border-pop";
-
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2">
-      <a href={x} target="_blank" rel="noopener" className={pill}>
+    <div className="flex flex-wrap items-center gap-2">
+      <a
+        href={x}
+        target="_blank"
+        rel="noopener"
+        className="btn btn-quiet py-2.5"
+      >
         Post on X
       </a>
-      <a href={wa} target="_blank" rel="noopener" className={pill}>
+      <a
+        href={wa}
+        target="_blank"
+        rel="noopener"
+        className="btn btn-quiet py-2.5"
+      >
         WhatsApp
       </a>
-      <button type="button" onClick={copy} className={pill}>
+      <button type="button" onClick={copy} className="btn btn-quiet py-2.5">
         {copied ? "Copied" : "Copy link"}
       </button>
     </div>
