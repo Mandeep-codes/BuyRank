@@ -91,6 +91,7 @@ export default async function ListingPage({
       <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-edge bg-wash bg-edge sm:grid-cols-3">
         <Stat label="Position" value={`#${entry.rank}`} />
         <Stat label="Costs to pass" value={formatUsd(takeFor)} />
+        <Stat label="Times shown" value={formatCompact(entry.views)} />
         <Stat
           label="Clicks delivered"
           value={formatCompact(entry.clicks)}

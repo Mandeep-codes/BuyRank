@@ -49,6 +49,9 @@ export const SPONSOR_MAX_DAYS = 7;
 export const MIN_ONLINE_TO_SHOW = 5;
 export const MIN_PAID_STAT_CENTS = 10_000;
 export const MIN_CLICKS_STAT = 10;
+export const MIN_VIEWS_STAT = 25;
+/** Visitors since launch is only shown once it reads as a crowd. */
+export const MIN_VISITORS_TO_SHOW = 50;
 /** Appended to every outbound link so bidders can attribute their traffic. */
 export const UTM_SOURCE = SITE_NAME.toLowerCase().replace(/\s+/g, "");
 

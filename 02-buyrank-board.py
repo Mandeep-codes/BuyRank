@@ -7,7 +7,7 @@ if not os.path.isdir("src/app"):
     sys.exit("run this from the repo root (the folder holding package.json)")
 
 FILES = {}
-DELETE = ['src/lib/denom.ts']
+DELETE = []
 
 FILES['src/app/page.tsx'] = r"""import { CategoryPills } from "@/components/CategoryPills";
 import { EntryRow } from "@/components/EntryRow";
@@ -18,6 +18,7 @@ import { ActivityStrip } from "@/components/ActivityStrip";
 import { ClickTicker } from "@/components/ClickTicker";
 import { SponsorSlot } from "@/components/SponsorSlot";
 import { Staircase } from "@/components/Staircase";
+import { ViewBeacon } from "@/components/ViewBeacon";
 import { SetupNotice, databaseErrorCode } from "@/components/SetupNotice";
 import { SPONSOR_TIERS } from "@/lib/config";
 import { paymentsConfigured } from "@/lib/dodo";
@@ -81,6 +82,10 @@ export default async function BoardPage({
     <main>
       <Masthead stats={stats} />
       <ClickTicker initial={clicks} />
+
+      {/* Counts this board as shown, once per session, after the tab is
+          actually visible. Renders nothing. */}
+      <ViewBeacon ids={board.rows.map((r) => r.id)} />
 
       {/* The object on its sweep, with the placements either side of it. */}
       <div className="mx-auto max-w-[86rem] px-5 pb-6 pt-10 sm:px-8 sm:pt-14">
@@ -157,7 +162,7 @@ export default async function BoardPage({
                 <span className="label hidden w-40 shrink-0 lg:block">
                   Category
                 </span>
-                <span className="label hidden w-24 shrink-0 md:block">
+                <span className="label hidden w-28 shrink-0 md:block">
                   Traffic
                 </span>
                 <span className="label w-16 shrink-0 text-right">Bid</span>
@@ -748,7 +753,7 @@ export function CopyBox({ value }: { value: string }) {
 
 FILES['src/components/EntryRow.tsx'] = r"""import Link from "next/link";
 import { Favicon } from "@/components/Favicon";
-import { categoryLabel } from "@/lib/config";
+import { categoryLabel, MIN_CLICKS_STAT, MIN_VIEWS_STAT } from "@/lib/config";
 import { formatCompact, formatUsd } from "@/lib/format";
 import { priceToBeat, type RankedEntry } from "@/lib/queries";
 
@@ -806,9 +811,23 @@ export function EntryRow({ entry }: { entry: RankedEntry }) {
           {categoryLabel(entry.category)}
         </span>
 
-        <span className="hidden w-24 shrink-0 text-[13px] text-dim md:block">
-          <span className="tnum text-ink">{formatCompact(entry.clicks)}</span>{" "}
-          clicks
+        {/* Views first: it is the honest number that is actually large, and
+            it answers "how often was this put in front of someone". Clicks sit
+            under it once there are enough of them to mean anything. */}
+        <span className="hidden w-28 shrink-0 text-[13px] leading-tight md:block">
+          {entry.views >= MIN_VIEWS_STAT ? (
+            <span className="block text-dim">
+              <span className="tnum text-ink">
+                {formatCompact(entry.views)}
+              </span>{" "}
+              views
+            </span>
+          ) : null}
+          {entry.clicks >= MIN_CLICKS_STAT ? (
+            <span className="mt-0.5 block text-dim">
+              <span className="tnum">{formatCompact(entry.clicks)}</span> clicks
+            </span>
+          ) : null}
         </span>
 
         <span className="denom w-16 shrink-0 text-right text-[17px] font-semibold">
@@ -962,6 +981,8 @@ export function Clause({
 FILES['src/components/LiveCount.tsx'] = r""""use client";
 
 import { useEffect, useState } from "react";
+import { MIN_ONLINE_TO_SHOW, MIN_VISITORS_TO_SHOW } from "@/lib/config";
+import { formatCompact } from "@/lib/format";
 
 const STORAGE_KEY = "buyrank_visitor";
 const HEARTBEAT_MS = 60_000;
@@ -984,7 +1005,7 @@ function visitorToken(): string {
   } catch {
     // localStorage blocked (private browsing). sessionStorage usually still
     // works, and without it every page load minted a new token — which
-    // quietly inflated"visitors since launch". One token per tab is honest.
+    // quietly inflated "visitors since launch". One token per tab is honest.
     try {
       const existing = sessionStorage.getItem(STORAGE_KEY);
       if (valid(existing)) return existing;
@@ -997,17 +1018,25 @@ function visitorToken(): string {
   }
 }
 
+/**
+ * Live presence: how many browsers are on the site right now, and how many
+ * have ever been. Both are real counts of real tokens, which is the whole
+ * point of them — the heartbeat is rate limited per IP precisely so the total
+ * cannot be run up, and neither figure starts anywhere but zero.
+ *
+ * Each half stays hidden until it is large enough to read as a crowd. A number
+ * that argues against the board is worse than no number, but the fix for that
+ * is silence, not a bigger number.
+ */
 export function LiveCount({
   initialOnline,
   initialTotal,
 }: {
-  /** Server-rendered starting values, so a refresh never blanks the pill. */
+  /** Server-rendered starting values, so a refresh never blanks the row. */
   initialOnline: number;
   initialTotal: number;
 }) {
-  // State is kept (not read) so the heartbeat response still has somewhere to
-  // land if the display block is restored.
-  const [, setCounts] = useState<{ online: number; total: number }>({
+  const [counts, setCounts] = useState({
     online: initialOnline,
     total: initialTotal,
   });
@@ -1046,18 +1075,29 @@ export function LiveCount({
     };
   }, []);
 
-  // Renders nothing on purpose: the online count is hidden while the numbers
-  // are small. The heartbeat above still runs, so presence keeps accruing and
-  // the count is available on /api/stats — restore the block below to show it.
-  //
-  //   <span className="flex items-center gap-1.5">
-  //     <span className="blink h-1.5 w-1.5 rounded-full bg-mint" aria-hidden />
-  //     <span className="tnum font-semibold text-mint">
-  //       {counts.online.toLocaleString("en-US")} online
-  //     </span>
-  //   </span>
-  //   <span aria-hidden>&middot;</span>
-  return null;
+  const showOnline = counts.online >= MIN_ONLINE_TO_SHOW;
+  const showTotal = counts.total >= MIN_VISITORS_TO_SHOW;
+  if (!showOnline && !showTotal) return null;
+
+  return (
+    <span className="flex items-center gap-3 text-[13px] text-dim">
+      {showOnline ? (
+        <span className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
+          <span className="tnum text-ink">
+            {counts.online.toLocaleString("en-US")}
+          </span>{" "}
+          online
+        </span>
+      ) : null}
+      {showTotal ? (
+        <span>
+          <span className="tnum text-ink">{formatCompact(counts.total)}</span>{" "}
+          visitors
+        </span>
+      ) : null}
+    </span>
+  );
 }
 """
 
@@ -1090,6 +1130,15 @@ export function Masthead({ stats }: { stats: BoardStats }) {
         </span>
 
         <div className="ml-auto flex items-center gap-5 sm:gap-7">
+          {/* Live presence. Both halves are real counts and both stay hidden
+              until they read as a crowd. */}
+          <div className="hidden sm:block">
+            <LiveCount
+              initialOnline={stats.onlineNow}
+              initialTotal={stats.totalVisitors}
+            />
+          </div>
+
           {stats.totalCents >= MIN_PAID_STAT_CENTS ? (
             <p className="hidden items-baseline gap-1.5 text-[13px] sm:flex">
               <span className="denom font-semibold">
@@ -1109,12 +1158,6 @@ export function Masthead({ stats }: { stats: BoardStats }) {
           </nav>
         </div>
       </div>
-
-      {/* Presence keeps accruing; the component itself renders nothing. */}
-      <LiveCount
-        initialOnline={stats.onlineNow}
-        initialTotal={stats.totalVisitors}
-      />
     </header>
   );
 }
@@ -1954,6 +1997,56 @@ export function SuccessRank({
         : "Confirming your spot…"}
     </p>
   );
+}
+"""
+
+FILES['src/components/ViewBeacon.tsx'] = r""""use client";
+
+import { useEffect } from "react";
+
+/**
+ * Reports that this set of listings was rendered in front of a real person.
+ *
+ * Fires once per board per session and only after the tab is actually visible,
+ * so a preloaded page or a background tab never counts. Renders nothing.
+ */
+export function ViewBeacon({ ids }: { ids: string[] }) {
+  useEffect(() => {
+    if (ids.length === 0) return;
+
+    // One report per distinct board per session. A refresh does not re-count.
+    const key = `buyrank_seen_${ids.join(",")}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      // Storage blocked. The rate limit is the backstop.
+    }
+
+    let sent = false;
+    const send = () => {
+      if (sent || document.visibilityState !== "visible") return;
+      sent = true;
+      fetch("/api/impressions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+        keepalive: true,
+      }).catch(() => {
+        // A dropped count is not worth surfacing.
+      });
+    };
+
+    // A short delay keeps drive-by loads and prefetches out of the number.
+    const timer = setTimeout(send, 1200);
+    document.addEventListener("visibilitychange", send);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", send);
+    };
+  }, [ids]);
+
+  return null;
 }
 """
 

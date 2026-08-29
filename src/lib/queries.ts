@@ -1,6 +1,13 @@
-import { and, count, desc, eq, gt, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gt, inArray, sql, sum } from "drizzle-orm";
 import { db } from "./db";
-import { bids, clickEvents, entries, sponsorSlots, visitors, type Entry } from "./db/schema";
+import {
+  bids,
+  clickEvents,
+  entries,
+  sponsorSlots,
+  visitors,
+  type Entry,
+} from "./db/schema";
 import { PAGE_SIZE } from "./config";
 
 export type RankedEntry = Entry & { rank: number };
@@ -21,6 +28,7 @@ const rankedBase = db
     category: entries.category,
     bidCents: entries.bidCents,
     clicks: entries.clicks,
+    views: entries.views,
     status: entries.status,
     createdAt: entries.createdAt,
     updatedAt: entries.updatedAt,
@@ -64,7 +72,9 @@ export async function getRankedEntries(opts: {
 }
 
 /** One listing with its live global rank, or null if it isn't on the board. */
-export async function getEntryWithRank(id: string): Promise<RankedEntry | null> {
+export async function getEntryWithRank(
+  id: string,
+): Promise<RankedEntry | null> {
   const rows = await db
     .select()
     .from(rankedBase)
@@ -154,6 +164,8 @@ export type BoardStats = {
   topCents: number;
   /** Lifetime outbound clicks across active listings — the value stat. */
   totalClicks: number;
+  /** Lifetime impressions across active listings. */
+  totalViews: number;
   /** Presence, server-side, so the pill renders complete on first paint. */
   onlineNow: number;
   totalVisitors: number;
@@ -178,6 +190,8 @@ export async function getStats(): Promise<BoardStats> {
          where status = 'active'), 0)                             as top_cents,
       coalesce((select sum(clicks) from entries
          where status = 'active'), 0)                             as total_clicks,
+      coalesce((select sum(views) from entries
+         where status = 'active'), 0)                             as total_views,
       (select count(*) from visitors
          where last_seen > now() - interval '150 seconds')        as online_now,
       (select count(*) from visitors)                             as total_visitors
@@ -191,6 +205,7 @@ export async function getStats(): Promise<BoardStats> {
     listings: Number(row.listings ?? 0),
     topCents: Number(row.top_cents ?? 0),
     totalClicks: Number(row.total_clicks ?? 0),
+    totalViews: Number(row.total_views ?? 0),
     onlineNow: Number(row.online_now ?? 0),
     totalVisitors: Number(row.total_visitors ?? 0),
   };
@@ -537,4 +552,21 @@ export async function reverseBid(paymentId: string): Promise<boolean> {
 
     return true;
   });
+}
+
+/**
+ * Records that these listings were rendered on a board somebody loaded.
+ *
+ * One statement for the whole page, and only ever +1 per listing per call —
+ * the browser is rate limited and sends a given board at most once per
+ * session, so this counts impressions rather than renders. Nothing here seeds
+ * a starting value: the number is small on day one because it is real, and it
+ * climbs on its own from the first visitor.
+ */
+export async function recordImpressions(ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  await db
+    .update(entries)
+    .set({ views: sql`${entries.views} + 1` })
+    .where(and(eq(entries.status, "active"), inArray(entries.id, ids)));
 }

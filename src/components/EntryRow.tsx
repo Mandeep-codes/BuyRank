@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Favicon } from "@/components/Favicon";
-import { categoryLabel } from "@/lib/config";
+import { categoryLabel, MIN_CLICKS_STAT, MIN_VIEWS_STAT } from "@/lib/config";
 import { formatCompact, formatUsd } from "@/lib/format";
 import { priceToBeat, type RankedEntry } from "@/lib/queries";
 
@@ -58,9 +58,23 @@ export function EntryRow({ entry }: { entry: RankedEntry }) {
           {categoryLabel(entry.category)}
         </span>
 
-        <span className="hidden w-24 shrink-0 text-[13px] text-dim md:block">
-          <span className="tnum text-ink">{formatCompact(entry.clicks)}</span>{" "}
-          clicks
+        {/* Views first: it is the honest number that is actually large, and
+            it answers "how often was this put in front of someone". Clicks sit
+            under it once there are enough of them to mean anything. */}
+        <span className="hidden w-28 shrink-0 text-[13px] leading-tight md:block">
+          {entry.views >= MIN_VIEWS_STAT ? (
+            <span className="block text-dim">
+              <span className="tnum text-ink">
+                {formatCompact(entry.views)}
+              </span>{" "}
+              views
+            </span>
+          ) : null}
+          {entry.clicks >= MIN_CLICKS_STAT ? (
+            <span className="mt-0.5 block text-dim">
+              <span className="tnum">{formatCompact(entry.clicks)}</span> clicks
+            </span>
+          ) : null}
         </span>
 
         <span className="denom w-16 shrink-0 text-right text-[17px] font-semibold">

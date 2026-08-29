@@ -7,6 +7,7 @@ import { ActivityStrip } from "@/components/ActivityStrip";
 import { ClickTicker } from "@/components/ClickTicker";
 import { SponsorSlot } from "@/components/SponsorSlot";
 import { Staircase } from "@/components/Staircase";
+import { ViewBeacon } from "@/components/ViewBeacon";
 import { SetupNotice, databaseErrorCode } from "@/components/SetupNotice";
 import { SPONSOR_TIERS } from "@/lib/config";
 import { paymentsConfigured } from "@/lib/dodo";
@@ -70,6 +71,10 @@ export default async function BoardPage({
     <main>
       <Masthead stats={stats} />
       <ClickTicker initial={clicks} />
+
+      {/* Counts this board as shown, once per session, after the tab is
+          actually visible. Renders nothing. */}
+      <ViewBeacon ids={board.rows.map((r) => r.id)} />
 
       {/* The object on its sweep, with the placements either side of it. */}
       <div className="mx-auto max-w-[86rem] px-5 pb-6 pt-10 sm:px-8 sm:pt-14">
@@ -146,7 +151,7 @@ export default async function BoardPage({
                 <span className="label hidden w-40 shrink-0 lg:block">
                   Category
                 </span>
-                <span className="label hidden w-24 shrink-0 md:block">
+                <span className="label hidden w-28 shrink-0 md:block">
                   Traffic
                 </span>
                 <span className="label w-16 shrink-0 text-right">Bid</span>

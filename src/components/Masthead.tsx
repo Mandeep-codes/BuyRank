@@ -27,6 +27,15 @@ export function Masthead({ stats }: { stats: BoardStats }) {
         </span>
 
         <div className="ml-auto flex items-center gap-5 sm:gap-7">
+          {/* Live presence. Both halves are real counts and both stay hidden
+              until they read as a crowd. */}
+          <div className="hidden sm:block">
+            <LiveCount
+              initialOnline={stats.onlineNow}
+              initialTotal={stats.totalVisitors}
+            />
+          </div>
+
           {stats.totalCents >= MIN_PAID_STAT_CENTS ? (
             <p className="hidden items-baseline gap-1.5 text-[13px] sm:flex">
               <span className="denom font-semibold">
@@ -46,12 +55,6 @@ export function Masthead({ stats }: { stats: BoardStats }) {
           </nav>
         </div>
       </div>
-
-      {/* Presence keeps accruing; the component itself renders nothing. */}
-      <LiveCount
-        initialOnline={stats.onlineNow}
-        initialTotal={stats.totalVisitors}
-      />
     </header>
   );
 }

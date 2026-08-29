@@ -92,7 +92,7 @@ export default async function CategoryPage({
               <span className="label hidden w-40 shrink-0 lg:block">
                 Category
               </span>
-              <span className="label hidden w-24 shrink-0 md:block">
+              <span className="label hidden w-28 shrink-0 md:block">
                 Traffic
               </span>
               <span className="label w-16 shrink-0 text-right">Bid</span>

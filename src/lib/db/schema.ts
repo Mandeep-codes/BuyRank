@@ -26,6 +26,13 @@ export const entries = pgTable(
     category: text("category").notNull().default("other"),
     bidCents: integer("bid_cents").notNull().default(0),
     clicks: integer("clicks").notNull().default(0),
+    /**
+     * Times this listing has actually been rendered on a board someone looked
+     * at. Counted separately from clicks because it answers a different
+     * question: clicks are what a bidder got, views are how often they were
+     * put in front of somebody. Both are recorded, neither is seeded.
+     */
+    views: integer("views").notNull().default(0),
     /** active | hidden — hidden rows are moderated out but keep their history. */
     status: text("status").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true })
