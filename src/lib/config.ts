@@ -46,8 +46,8 @@ export const SPONSOR_MAX_DAYS = 7;
  * stat. These hide real-but-weak numbers until they read as strength — the
  * numbers themselves are never altered.
  */
-export const MIN_ONLINE_TO_SHOW = 1;
-export const MIN_PAID_STAT_CENTS = 5_000;
+export const MIN_ONLINE_TO_SHOW = 5;
+export const MIN_PAID_STAT_CENTS = 10_000;
 export const MIN_CLICKS_STAT = 10;
 export const MIN_VIEWS_STAT = 25;
 /** Visitors since launch is only shown once it reads as a crowd. */
